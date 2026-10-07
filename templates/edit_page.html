@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Page: {{ page.title }} - KixoGames</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+
+<body
+    class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8 font-sans transition-colors duration-300">
+    <div
+        class="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
+        <div class="bg-gray-900 text-white p-6 flex justify-between items-center">
+            <h1 class="text-2xl font-black">✏️ Edit Page: {{ page.title }}</h1>
+            <div class="flex gap-3">
+                <a href="/gamesecurityadmin"
+                    class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow">←
+                    Back to Dashboard</a>
+            </div>
+        </div>
+        <div class="p-8">
+            <!-- 🚀 FIXED: Form Action URL matched with backend security route -->
+            <form action="/gamesecurity/edit_page/{{ page.id }}" method="POST" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <div>
+                    <label class="block font-bold text-gray-700 dark:text-gray-300 mb-2">Page Title (URL
+                        visible)</label>
+                    <input type="text" name="page_title" value="{{ page.title }}" required
+                        class="w-full border p-3 rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-600 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 dark:text-gray-300 mb-2">Page Content (HTML
+                        allowed)</label>
+                    <textarea name="page_content" required
+                        class="w-full border p-3 rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-600 focus:ring-1 focus:ring-blue-500 outline-none transition-all h-96 font-mono text-sm leading-relaxed">{{ page.content }}</textarea>
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <a href="/gamesecurityadmin"
+                        class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-3 px-8 rounded-lg transition-colors">Cancel</a>
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-lg shadow-xl shadow-blue-700/20 transition-colors">
+                        💾 Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

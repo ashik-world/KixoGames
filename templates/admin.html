@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - KixoGames</title>
+    <meta name="robots" content="noindex, nofollow">
+    <!-- 🚀 CSRF Token for AJAX Requests -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</head>
+
+<body
+    class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-3 sm:p-6 lg:p-8 font-sans transition-colors duration-300">
+
+    <div
+        class="max-w-7xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
+
+        <!-- 🚀 Header: Fully Responsive -->
+        <div
+            class="bg-gray-900 text-white p-5 sm:p-6 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 text-center md:text-left">
+            <div>
+                <h1
+                    class="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                    🛠️ KixoGames DASHBOARD</h1>
+                <p class="text-xs sm:text-sm text-gray-400 mt-1">Logged in as: <span
+                        class="font-bold text-white break-all">{{ admin_email }}</span> ({{ role | upper }})</p>
+            </div>
+            <div class="flex flex-wrap justify-center gap-2 sm:gap-3 items-center w-full md:w-auto">
+                <button id="theme-toggle"
+                    class="p-2 sm:p-2.5 rounded-full bg-gray-700 text-yellow-400 hover:bg-gray-600 focus:outline-none transition-colors shadow">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 hidden dark:block" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 block dark:hidden text-gray-300" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                        </path>
+                    </svg>
+                </button>
+
+                <!-- 🚀 Database Backup Button (Visible only to Super Admin) -->
+                {% if role == 'superadmin' %}
+                <a href="/gamesecurity/backup"
+                    class="bg-indigo-600 hover:bg-indigo-700 px-3 sm:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm text-white shadow shadow-indigo-700/50 transition-colors">💾
+                    Download Backup</a>
+                {% endif %}
+
+                <a href="/"
+                    class="bg-gray-700 hover:bg-gray-600 px-3 sm:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm transition-colors shadow shadow-gray-700/50">View
+                    Website</a>
+                <a href="/gamesecurity/logout"
+                    class="bg-red-600 hover:bg-red-700 px-3 sm:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm shadow shadow-red-700/50 transition-colors">Logout</a>
+            </div>
+        </div>
+
+        <div class="p-4 sm:p-6 lg:p-8 flex flex-col gap-6 sm:gap-8">
+
+            <!-- 🚀 UPDATED: Flash Messages Support with Auto-Hide Class -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div id="flash-messages-container" class="space-y-2">
+                {% for category, message in messages %}
+                <div
+                    class="flash-message p-4 rounded-lg font-bold shadow-sm transition-all duration-500 opacity-100 {% if category == 'success' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800{% else %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <!-- 🚀 PHASE 4.2: Dynamic Translation Management UI -->
+            <div
+                class="bg-blue-50 dark:bg-gray-800/80 rounded-xl border border-blue-200 dark:border-gray-700 shadow-sm p-4 sm:p-6 transition-colors duration-300">
+                <h2
+                    class="text-lg sm:text-xl font-bold mb-4 text-blue-800 dark:text-blue-400 border-b border-blue-200 dark:border-gray-700 pb-2 flex items-center gap-2">
+                    🌐 Manage Translations <span class="text-xs text-gray-500">(Manual Override)</span>
+                </h2>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Selector Panel -->
+                    <div class="lg:col-span-1 space-y-4">
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1 text-sm">Select
+                                Game</label>
+                            <select id="trans-game-select"
+                                class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-900 dark:border-gray-600 text-gray-800 dark:text-white transition cursor-pointer">
+                                <option value="" disabled selected>-- Choose Game --</option>
+                                {% for g in all_active_games %}
+                                <option value="{{ g.id }}">{{ g.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1 text-sm">Select Target
+                                Language</label>
+                            <select id="trans-lang-select"
+                                class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-900 dark:border-gray-600 text-gray-800 dark:text-white transition cursor-pointer">
+                                <option value="" disabled selected>-- Choose Language --</option>
+                                {% for code, lang in available_languages.items() %}
+                                {% if code != 'en' %}
+                                <option value="{{ code }}">{{ lang.name }} ({{ lang.native }})</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button id="btn-fetch-trans" onclick="fetchTranslationData()"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
+                            <span>📥 Fetch Translation</span>
+                            <div id="fetch-loader"
+                                class="hidden animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white">
+                            </div>
+                        </button>
+
+                        <div id="trans-status-msg" class="text-sm font-bold text-center hidden"></div>
+                    </div>
+
+                    <!-- Editor Panel -->
+                    <div class="lg:col-span-2 relative">
+                        <!-- Glass Overlay before fetching -->
+                        <div id="trans-overlay"
+                            class="absolute inset-0 bg-white/60 dark:bg-gray-800/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-gray-600">
+                            <span class="text-3xl mb-2">🔍</span>
+                            <p class="font-bold text-gray-600 dark:text-gray-400">Select Game & Language to Edit</p>
+                        </div>
+
+                        <form id="form-update-trans" onsubmit="event.preventDefault(); saveTranslationData();"
+                            class="space-y-4 bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <input type="hidden" id="trans-game-id">
+                            <input type="hidden" id="trans-lang-code">
+
+                            <div>
+                                <label
+                                    class="block font-bold text-gray-700 dark:text-gray-300 mb-1 text-sm">Description</label>
+                                <textarea id="trans-desc"
+                                    class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none bg-gray-50 dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-white transition h-32"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1 text-sm">How to
+                                        Play</label>
+                                    <textarea id="trans-how"
+                                        class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none bg-gray-50 dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-white transition h-24"></textarea>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block font-bold text-gray-700 dark:text-gray-300 mb-1 text-sm">Controls</label>
+                                    <textarea id="trans-controls"
+                                        class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none bg-gray-50 dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-white transition h-24"></textarea>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1 text-sm">FAQs
+                                    (HTML)</label>
+                                <textarea id="trans-faqs"
+                                    class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none bg-gray-50 dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-white transition h-24 font-mono text-xs"></textarea>
+                            </div>
+
+                            <button type="submit" id="btn-save-trans"
+                                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg shadow-green-700/20 transition-colors flex items-center justify-center gap-2">
+                                <span>💾 Save Changes</span>
+                                <div id="save-loader"
+                                    class="hidden animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white">
+                                </div>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📈 Analytics Cards -->
+            <div>
+                <h2
+                    class="text-lg sm:text-xl font-bold mb-4 text-gray-800 dark:text-white border-b dark:border-gray-700 pb-2 flex items-center gap-2">
+                    📈 Platform Analytics Overview
+                </h2>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6">
+                    <div
+                        class="bg-blue-50 dark:bg-gray-700 p-4 sm:p-5 rounded-xl border border-blue-100 dark:border-gray-600 shadow-sm">
+                        <p
+                            class="text-[10px] sm:text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">
+                            Total Views</p>
+                        <p class="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 mt-1">{{ total_views
+                            }}</p>
+                    </div>
+                    <div
+                        class="bg-green-50 dark:bg-gray-700 p-4 sm:p-5 rounded-xl border border-green-100 dark:border-gray-600 shadow-sm">
+                        <p
+                            class="text-[10px] sm:text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">
+                            Total Users</p>
+                        <p class="text-2xl sm:text-3xl font-black text-green-600 dark:text-green-400 mt-1">{{
+                            total_users }}</p>
+                    </div>
+                    <div
+                        class="bg-purple-50 dark:bg-gray-700 p-4 sm:p-5 rounded-xl border border-purple-100 dark:border-gray-600 shadow-sm">
+                        <p
+                            class="text-[10px] sm:text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">
+                            Total Games</p>
+                        <p class="text-2xl sm:text-3xl font-black text-purple-600 dark:text-purple-400 mt-1">{{
+                            total_games }}</p>
+                    </div>
+                    <div
+                        class="bg-red-50 dark:bg-gray-700 p-4 sm:p-5 rounded-xl border border-red-100 dark:border-gray-600 shadow-sm">
+                        <p
+                            class="text-[10px] sm:text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">
+                            Pending Reports</p>
+                        <p class="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400 mt-1">{{ reports|length
+                            }}</p>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 sm:p-6 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-4 text-sm sm:text-base">🔥 Top 5 Most
+                        Played Games</h3>
+                    <div class="relative h-48 sm:h-64 w-full">
+                        <canvas id="topGamesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🕹️ Phase 4: Pending Developer Submissions (QA) -->
+            {% if pending_submissions %}
+            <div
+                class="bg-yellow-50 dark:bg-gray-900/60 rounded-xl border border-yellow-300 dark:border-yellow-700/50 shadow-sm p-4 sm:p-6 transition-colors duration-300">
+                <h2
+                    class="text-lg sm:text-xl font-bold mb-4 text-yellow-800 dark:text-yellow-400 border-b border-yellow-300 dark:border-yellow-700/50 pb-2 flex items-center gap-2">
+                    🕹️ Developer Submissions (Pending QA)
+                </h2>
+                <div
+                    class="overflow-x-auto rounded-lg border border-yellow-200 dark:border-gray-700 shadow-inner w-full">
+                    <table class="w-full text-left bg-white dark:bg-gray-800 whitespace-nowrap">
+                        <thead
+                            class="bg-yellow-200/50 dark:bg-yellow-900/20 text-yellow-900 dark:text-yellow-300 text-xs uppercase font-bold tracking-wider">
+                            <tr>
+                                <th class="p-3">Game Details</th>
+                                <th class="p-3">Developer</th>
+                                <th class="p-3">Category</th>
+                                <th class="p-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            {% for sub in pending_submissions %}
+                            <tr
+                                class="border-t border-yellow-100 dark:border-gray-700 hover:bg-yellow-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <td class="p-3">
+                                    <div class="flex items-center gap-3">
+                                        <img src="{{ sub.image_url }}" alt=""
+                                            class="w-12 h-12 object-cover rounded-md bg-gray-100 dark:bg-gray-900 border dark:border-gray-600">
+                                        <div class="flex flex-col">
+                                            <span class="font-bold text-gray-800 dark:text-gray-200">{{ sub.game_name
+                                                }}</span>
+                                            <span class="text-xs text-gray-500">{{ sub.submitted_at.strftime('%Y-%m-%d
+                                                %H:%M') }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-3 text-gray-600 dark:text-gray-400 font-mono text-xs">{{ sub.dev_email }}
+                                </td>
+                                <td
+                                    class="p-3 text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wider text-[10px]">
+                                    {{ sub.category }}</td>
+                                <td class="p-3 text-center">
+                                    <div class="flex justify-center gap-2">
+                                        <button onclick="openPreviewModal('{{ sub.game_url }}')"
+                                            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-bold transition shadow">👁️
+                                            Preview</button>
+                                        <a href="/gamesecurity/approve_submission/{{ sub.id }}"
+                                            onclick="return confirm('Approve this game? It will go Live immediately.')"
+                                            class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold transition shadow">✅
+                                            Approve</a>
+                                        <button onclick="openRejectModal({{ sub.id }}, '{{ sub.game_name }}')"
+                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs font-bold transition shadow">❌
+                                            Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 🚩 Bug Reports -->
+            <div
+                class="bg-red-50 dark:bg-gray-900/40 rounded-xl border border-red-100 dark:border-red-900/30 shadow-sm p-4 sm:p-6 transition-colors duration-300">
+                <h2
+                    class="text-lg sm:text-xl font-bold mb-4 text-red-800 dark:text-red-400 border-b border-red-200 dark:border-red-900/50 pb-2 flex items-center gap-2">
+                    🚩 User Bug Reports
+                </h2>
+                <div class="overflow-x-auto rounded-lg border border-red-100 dark:border-gray-700 shadow-inner w-full">
+                    <table class="w-full text-left bg-white dark:bg-gray-800 whitespace-nowrap">
+                        <thead
+                            class="bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 text-xs uppercase font-bold tracking-wider">
+                            <tr>
+                                <th class="p-3">Game Name</th>
+                                <th class="p-3">Report Reason</th>
+                                <th class="p-3 text-center">Count</th> <!-- 🚀 Added Count Column -->
+                                <th class="p-3">Date</th>
+                                <th class="p-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            {% for report in reports %}
+                            <tr class="border-t border-red-50 dark:border-gray-700 transition-colors">
+                                <td class="p-3 font-semibold">{{ report.game_name }}</td>
+                                <td class="p-3 text-gray-600 dark:text-gray-400">{{ report.reason }}</td>
+                                <!-- 🚀 Display Aggregated Count -->
+                                <td class="p-3 text-center">
+                                    <span
+                                        class="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 font-bold px-2.5 py-0.5 rounded-full">{{
+                                        report.count }}</span>
+                                </td>
+                                <td class="p-3 text-gray-500 text-xs">{{ report.date }}</td>
+                                <td class="p-3 text-center">
+                                    <a href="/gamesecurity/resolve_report/{{ report.id }}"
+                                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold transition shadow inline-block"
+                                        onclick="return confirm('Mark this issue as resolved? It will permanently delete this report data.')">✅
+                                        Resolve</a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="p-6 text-center text-gray-500 font-semibold">No pending reports!
+                                    Everything is running smoothly.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 👑 Super Admin: Manage Moderators -->
+            {% if role == 'superadmin' %}
+            <div
+                class="bg-blue-50 dark:bg-gray-700/40 p-4 sm:p-6 rounded-xl border border-blue-200 dark:border-gray-700 shadow-inner shadow-gray-200/50 dark:shadow-none">
+                <h2
+                    class="text-lg sm:text-xl font-bold mb-4 text-blue-800 dark:text-blue-300 border-b border-blue-200 dark:border-gray-700 pb-2 flex items-center gap-2">
+                    👑 Manage Moderators <span class="text-xs text-gray-500">(Super Admin Only)</span>
+                </h2>
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <div class="w-full lg:w-1/3">
+                        <form action="/gamesecurity/add_moderator" method="POST"
+                            class="space-y-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <input type="email" name="email" placeholder="Moderator Email" required
+                                class="w-full border p-2.5 rounded focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-900 dark:border-gray-600">
+                            <input type="password" name="password" placeholder="Set Password" required
+                                class="w-full border p-2.5 rounded focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-900 dark:border-gray-600">
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded transition-colors shadow">➕
+                                Add Moderator</button>
+                        </form>
+                    </div>
+                    <div class="w-full lg:w-2/3">
+                        <div
+                            class="overflow-x-auto rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 w-full">
+                            <table class="w-full text-left bg-white dark:bg-gray-800 whitespace-nowrap">
+                                <thead class="bg-gray-100 dark:bg-gray-900">
+                                    <tr class="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
+                                        <th class="p-3">Email</th>
+                                        <th class="p-3">Role</th>
+                                        <th class="p-3 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 🚀 Update: Moderator Pagination Loop -->
+                                    {% for mod in moderators_pagination.items %}
+                                    <tr
+                                        class="border-t dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <td class="p-3 font-semibold">{{ mod.email }}</td>
+                                        <td class="p-3 text-gray-500 dark:text-gray-400 uppercase font-bold text-xs">{{
+                                            mod.role }}</td>
+                                        <td class="p-3 text-center"><a
+                                                href="/gamesecurity/delete_moderator/{{ mod.id }}"
+                                                class="text-red-500 hover:text-red-700 font-bold bg-red-50 dark:bg-red-900/30 px-3 py-1 rounded"
+                                                onclick="return confirm('Remove this moderator?')">❌ Remove</a></td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="3"
+                                            class="p-4 text-center text-gray-500 font-semibold bg-gray-50 dark:bg-gray-800/50">
+                                            No moderators added yet.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 🚀 Update: Moderator Pagination UI -->
+                        {% if moderators_pagination.pages > 1 %}
+                        <div class="mt-4 flex justify-center items-center gap-2">
+                            {% if moderators_pagination.has_prev %}
+                            <a href="{{ url_for('admin_dashboard', mod_page=moderators_pagination.prev_num) }}"
+                                class="px-3 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 text-xs font-bold">&laquo;
+                                Prev</a>
+                            {% endif %}
+                            <span class="px-3 py-1 font-bold text-xs text-gray-600 dark:text-gray-400">Page {{
+                                moderators_pagination.page }} of {{ moderators_pagination.pages }}</span>
+                            {% if moderators_pagination.has_next %}
+                            <a href="{{ url_for('admin_dashboard', mod_page=moderators_pagination.next_num) }}"
+                                class="px-3 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 text-xs font-bold">Next
+                                &raquo;</a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 👨‍💻 Phase 2: Manage Developers (Whitelist) -->
+            <div
+                class="bg-indigo-50 dark:bg-gray-700/40 p-4 sm:p-6 rounded-xl border border-indigo-200 dark:border-gray-700 shadow-inner">
+                <h2
+                    class="text-lg sm:text-xl font-bold mb-4 text-indigo-800 dark:text-indigo-300 border-b border-indigo-200 dark:border-gray-700 pb-2 flex items-center gap-2">
+                    👨‍💻 Manage Developers (Whitelist) <span class="text-xs text-gray-500">(Admins & Moderators)</span>
+                </h2>
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <div class="w-full lg:w-1/3">
+                        <form action="/gamesecurity/add_developer" method="POST"
+                            class="space-y-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <p class="text-xs text-gray-500 mb-2">Only whitelisted emails can access the Developer
+                                Portal via Google Login.</p>
+                            <input type="email" name="email" placeholder="Developer Google Email" required
+                                class="w-full border p-2.5 rounded focus:ring-1 focus:ring-indigo-500 outline-none dark:bg-gray-900 dark:border-gray-600">
+                            <button type="submit"
+                                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded transition-colors shadow">➕
+                                Add Developer</button>
+                        </form>
+                    </div>
+                    <div class="w-full lg:w-2/3">
+                        <div
+                            class="overflow-x-auto rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 w-full">
+                            <table class="w-full text-left bg-white dark:bg-gray-800 whitespace-nowrap">
+                                <thead class="bg-gray-100 dark:bg-gray-900">
+                                    <tr class="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
+                                        <th class="p-3">Developer Email</th>
+                                        <th class="p-3">Added Date</th>
+                                        <th class="p-3 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 🚀 Update: Developer Pagination Loop -->
+                                    {% for dev in developer_whitelist_pagination.items %}
+                                    <tr
+                                        class="border-t dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <td class="p-3 font-semibold">{{ dev.email }}</td>
+                                        <td class="p-3 text-gray-500 text-xs">{{ dev.added_at.strftime('%Y-%m-%d') }}
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            <a href="/gamesecurity/delete_developer/{{ dev.id }}"
+                                                class="text-red-500 hover:text-red-700 font-bold bg-red-50 dark:bg-red-900/30 px-3 py-1 rounded"
+                                                onclick="return confirm('Revoke access for {{ dev.email }}? They will instantly lose access to the Developer Portal.')">🚫
+                                                Revoke</a>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="3"
+                                            class="p-4 text-center text-gray-500 font-semibold bg-gray-50 dark:bg-gray-800/50">
+                                            No developers whitelisted yet.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 🚀 Update: Developer Pagination UI -->
+                        {% if developer_whitelist_pagination.pages > 1 %}
+                        <div class="mt-4 flex justify-center items-center gap-2">
+                            {% if developer_whitelist_pagination.has_prev %}
+                            <a href="{{ url_for('admin_dashboard', dev_page=developer_whitelist_pagination.prev_num) }}"
+                                class="px-3 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 text-xs font-bold">&laquo;
+                                Prev</a>
+                            {% endif %}
+                            <span class="px-3 py-1 font-bold text-xs text-gray-600 dark:text-gray-400">Page {{
+                                developer_whitelist_pagination.page }} of {{ developer_whitelist_pagination.pages
+                                }}</span>
+                            {% if developer_whitelist_pagination.has_next %}
+                            <a href="{{ url_for('admin_dashboard', dev_page=developer_whitelist_pagination.next_num) }}"
+                                class="px-3 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 text-xs font-bold">Next
+                                &raquo;</a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- 💰 Ads Control -->
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 sm:p-6 transition-colors duration-300">
+                <h2
+                    class="text-lg sm:text-xl font-bold mb-4 text-gray-800 dark:text-white border-b dark:border-gray-700 pb-2 flex items-center gap-2">
+                    💰 Monetization & Dynamic Ad Control
+                </h2>
+
+                <form action="/gamesecurityadmin" method="POST"
+                    class="space-y-6 bg-blue-50 dark:bg-gray-900 p-4 sm:p-6 rounded-lg border border-blue-100 dark:border-gray-600">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="form_type" value="update_ads">
+
+                    <div
+                        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-gray-300 dark:border-gray-700">
+                        <div>
+                            <h3 class="font-bold text-base sm:text-lg text-gray-800 dark:text-gray-200">Global Ads
+                                Status</h3>
+                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Master switch to enable
+                                or disable all ads instantly.</p>
+                        </div>
+                        <select name="show_ads"
+                            class="w-full sm:w-64 border p-3 rounded-lg font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer">
+                            <option value="true" {% if site_settings.show_ads %}selected{% endif %}>🟢 Ads Enabled (ON)
+                            </option>
+                            <option value="false" {% if not site_settings.show_ads %}selected{% endif %}>🔴 Ads Disabled
+                                (OFF)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 mb-2 text-sm">Global Head
+                                Script</label>
+                            <textarea name="head_script" placeholder="<script async src='...'></script>"
+                                class="w-full border p-3 rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 focus:ring-1 focus:ring-blue-500 outline-none h-24 sm:h-28 font-mono text-xs sm:text-sm">{{ site_settings.head_script }}</textarea>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 mb-2 text-sm">Top Banner Code
+                                (728x90)</label>
+                            <textarea name="top_banner" placeholder="Paste HTML Code here..."
+                                class="w-full border p-3 rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 focus:ring-1 focus:ring-blue-500 outline-none h-24 sm:h-28 font-mono text-xs sm:text-sm">{{ site_settings.top_banner }}</textarea>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 mb-2 text-sm">Sidebar Ad 1
+                                (300x250)</label>
+                            <textarea name="sidebar_1" placeholder="Paste HTML Code here..."
+                                class="w-full border p-3 rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 focus:ring-1 focus:ring-blue-500 outline-none h-24 sm:h-28 font-mono text-xs sm:text-sm">{{ site_settings.sidebar_1 }}</textarea>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 dark:text-gray-300 mb-2 text-sm">Sidebar Ad 2
+                                (300x250)</label>
+                            <textarea name="sidebar_2" placeholder="Paste HTML Code here..."
+                                class="w-full border p-3 rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 focus:ring-1 focus:ring-blue-500 outline-none h-24 sm:h-28 font-mono text-xs sm:text-sm">{{ site_settings.sidebar_2 }}</textarea>
+                        </div>
+                    </div>
+                    <div class="flex justify-end pt-2">
+                        <button type="submit"
+                            class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg">💾
+                            Save Ad Settings</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 📣 Push Notification Broadcast -->
+            {% if role == 'superadmin' %}
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 sm:p-6 transition-colors duration-300 mt-4">
+                <h2
+                    class="text-lg sm:text-xl font-bold mb-4 text-gray-800 dark:text-white border-b dark:border-gray-700 pb-2 flex items-center gap-2">
+                    📣 Broadcast Push Notification
+                </h2>
+
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <!-- Form -->
+                    <div class="w-full lg:w-1/2">
+                        <form action="/gamesecurity/broadcast_push" method="POST"
+                            class="space-y-4 bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 rounded-lg border border-gray-100 dark:border-gray-700">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                            <div>
+                                <label
+                                    class="block font-bold text-gray-700 dark:text-gray-300 mb-1 text-sm">Notification
+                                    Title <span class="text-red-500">*</span></label>
+                                <input type="text" name="title" id="push-title" placeholder="🔥 New Racing Game Added!"
+                                    required
+                                    class="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-800 dark:border-gray-600 transition"
+                                    oninput="updatePushPreview()">
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1 text-sm">Message
+                                    Body <span class="text-red-500">*</span></label>
+                                <textarea name="message" id="push-message"
+                                    placeholder="Play Nitro Speed 2 for free right now." required
+                                    class="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-800 dark:border-gray-600 transition h-20"
+                                    oninput="updatePushPreview()"></textarea>
+                            </div>
+
+                            <!-- 🚀 UPDATED: Removed default value from target_url -->
+                            <div>
+                                <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1 text-sm">Target Link
+                                    <span class="text-red-500">*</span></label>
+                                <input type="text" name="target_url" id="push-url" placeholder="https://..." required
+                                    class="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-800 dark:border-gray-600 transition">
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-gray-700 dark:text-gray-300 mb-1 text-sm">Banner
+                                    Image URL (Optional)</label>
+                                <input type="url" name="image_url" id="push-image" placeholder="https://.../image.jpg"
+                                    class="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-800 dark:border-gray-600 transition"
+                                    oninput="updatePushPreview()">
+                                <p class="text-xs text-gray-500 mt-1">Leave empty for standard text alert. Paste image
+                                    URL for Rich Media banner.</p>
+                            </div>
+
+                            <button type="submit"
+                                onclick="return confirm('Broadcast to ALL users? This action cannot be undone.')"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-700/20 transition-colors">🚀
+                                Send Broadcast</button>
+                        </form>
+                    </div>
+
+                    <!-- Live Preview -->
+                    <div
+                        class="w-full lg:w-1/2 flex items-center justify-center bg-gray-100 dark:bg-gray-800/50 p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+                        <div
+                            class="w-full max-w-sm bg-white dark:bg-gray-700 rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-600 transition-all duration-300">
+                            <!-- Preview Header -->
+                            <div class="flex items-center gap-3 p-4">
+                                <img src="/static/icon-192.png" alt="Logo"
+                                    onerror="this.src='https://via.placeholder.com/48/3b82f6/fff?text=GZ'"
+                                    class="w-12 h-12 rounded-lg object-cover bg-gray-100 dark:bg-gray-800">
+                                <div class="flex-1 min-w-0">
+                                    <h4 id="preview-title" class="font-bold text-gray-900 dark:text-white truncate">
+                                        Notification Title</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">KixoGames • Just now</p>
+                                </div>
+                            </div>
+                            <!-- Preview Body -->
+                            <div class="px-4 pb-3">
+                                <p id="preview-message" class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                                    Message body will appear here.</p>
+                            </div>
+                            <!-- Preview Image (Rich Media) -->
+                            <div id="preview-image-container"
+                                class="w-full aspect-[2/1] bg-gray-200 dark:bg-gray-800 hidden overflow-hidden">
+                                <img id="preview-img-tag" src="" alt="Banner" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 🎮 Game Management -->
+            <div class="flex flex-col lg:flex-row gap-6 sm:gap-8 mt-4">
+
+                <div
+                    class="w-full lg:w-1/3 bg-gray-50 dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm h-fit">
+                    <h2 class="text-lg sm:text-xl font-bold mb-4 border-b pb-2 dark:border-gray-600">➕ Add New Game</h2>
+                    <!-- 🚀 Phase 2 Update: enctype="multipart/form-data" -->
+                    <form action="/gamesecurityadmin" method="POST" enctype="multipart/form-data" class="space-y-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input type="hidden" name="form_type" value="add_game">
+
+                        <input type="text" name="name" placeholder="Game Name" required
+                            class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600">
+                        <input type="url" name="url" placeholder="Game URL (iFrame)" required
+                            class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600">
+                        <textarea name="description" placeholder="Description..." required
+                            class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600 h-24"></textarea>
+
+                        <!-- 🚀 ADVANCED SEO FIELDS -->
+                        <input type="text" name="tags" placeholder="Tags (Comma-separated, e.g., action, 3d, car)"
+                            class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600">
+                        <input type="text" name="controls" placeholder="Controls (e.g., W A S D, SPACE, CLICK)"
+                            class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600">
+                        <textarea name="how_to_play" placeholder="How to Play instructions..."
+                            class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600 h-20"></textarea>
+                        <textarea name="faqs" placeholder="FAQs (HTML allowed)..."
+                            class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600 h-20"></textarea>
+
+                        <!-- 🚀 HYBRID SEO: Smart Category Dropdown + Dynamic Icon Input -->
+                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-2">
+
+                            <!-- Smart Category Dropdown -->
+                            <div class="w-full sm:w-2/4 relative">
+                                <input type="hidden" name="category" id="real-category" required>
+
+                                <select id="cat-select" required onchange="handleCatChange(this)"
+                                    class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600 transition cursor-pointer font-bold capitalize">
+                                    <option value="" disabled selected>Select Category...</option>
+
+                                    <!-- Default Predefined Categories -->
+                                    {% set base_cats = ['action', 'racing', 'puzzle', 'sport', 'arcade', 'strategy',
+                                    'adventure', 'shooting', 'simulation', 'board'] %}
+                                    {% for cat in base_cats %}
+                                    <option value="{{ cat }}">{{ cat | capitalize }}</option>
+                                    {% endfor %}
+
+                                    <!-- Any Custom Categories from Database -->
+                                    {% for cat in categories %}
+                                    {% if cat|lower not in base_cats %}
+                                    <option value="{{ cat }}">{{ cat | capitalize }}</option>
+                                    {% endif %}
+                                    {% endfor %}
+
+                                    <option value="__new__"
+                                        class="font-black text-blue-600 bg-blue-50 dark:bg-gray-800">➕ Create New
+                                        Category...</option>
+                                </select>
+
+                                <!-- Hidden Text Input for New Category -->
+                                <div id="new-cat-group" class="hidden items-center relative w-full">
+                                    <input type="text" id="new-cat-text" placeholder="Type new category..."
+                                        oninput="updateRealCat(this.value)"
+                                        class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600 pr-10">
+                                    <button type="button" onclick="cancelNewCat()"
+                                        class="absolute right-3 text-red-500 hover:text-red-700 font-bold transition-transform active:scale-95"
+                                        title="Cancel">❌</button>
+                                </div>
+                            </div>
+
+                            <!-- Optional Icon Input -->
+                            <input type="text" name="category_icon" placeholder="Icon (e.g. 🧟)"
+                                class="w-full sm:w-1/4 border p-3 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600 text-center text-xl transition-all shadow-inner"
+                                maxlength="5" title="Optional: Add a default emoji/icon for this category">
+
+                            <!-- 🚀 UPDATE: Synchronized Color Themes -->
+                            <select name="color"
+                                class="w-full sm:w-1/4 border p-3 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600 transition cursor-pointer font-bold">
+                                <option value="blue">Blue</option>
+                                <option value="purple">Purple</option>
+                                <option value="green">Green</option>
+                                <option value="red">Red</option>
+                                <option value="orange">Orange</option>
+                                <option value="yellow">Yellow</option>
+                            </select>
+                        </div>
+
+                        <!-- 🚀 Phase 2 Update: File inputs instead of URLs -->
+                        <div>
+                            <label class="block font-semibold text-xs text-gray-500 dark:text-gray-400 mb-1">Thumbnail
+                                Image (JPG/PNG/WebP)</label>
+                            <input type="file" name="image_file" accept="image/jpeg, image/png, image/webp" required
+                                class="w-full border p-2 rounded-lg focus:ring-1 focus:ring-green-500 outline-none dark:bg-gray-900 dark:border-gray-600 file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 dark:file:bg-gray-700 dark:file:text-green-400">
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-xs text-gray-500 dark:text-gray-400 mb-1">Hover
+                                Preview Video (MP4/WebM/GIF) - Optional</label>
+                            <input type="file" name="preview_file" accept="video/mp4, video/webm, image/gif"
+                                class="w-full border p-2 rounded-lg bg-white dark:bg-gray-900 dark:border-gray-600 text-gray-800 dark:text-gray-200 focus:ring-1 focus:ring-green-500 outline-none file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 dark:file:bg-gray-700 dark:file:text-gray-300">
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg shadow-green-700/20 transition-colors">Upload
+                            Game</button>
+                    </form>
+                </div>
+
+                <div class="w-full lg:w-2/3">
+                    <h2 class="text-lg sm:text-xl font-bold mb-4 border-b pb-2 dark:border-gray-600 tracking-wider">📋
+                        Total Games in Database</h2>
+
+                    <form action="/gamesecurityadmin" method="GET" class="mb-4 flex flex-col sm:flex-row gap-3">
+                        {% if request.args.get('user_email') %}
+                        <input type="hidden" name="user_email" value="{{ request.args.get('user_email') }}">
+                        {% endif %}
+                        <input type="text" name="game_search" value="{{ request.args.get('game_search', '') }}"
+                            placeholder="Search games by name..."
+                            class="w-full border p-2.5 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-900 dark:border-gray-600">
+                        <div class="flex gap-2">
+                            <button type="submit"
+                                class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold transition-colors shadow">Search</button>
+                            {% if request.args.get('game_search') %}
+                            <a href="{{ url_for('admin_dashboard', user_email=request.args.get('user_email', '')) }}"
+                                class="flex-1 sm:flex-none bg-gray-500 hover:bg-gray-600 text-white px-5 py-2.5 rounded-lg font-bold transition-colors text-center shadow">Clear</a>
+                            {% endif %}
+                        </div>
+                    </form>
+
+                    <div
+                        class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-300 w-full">
+                        <table class="w-full text-left bg-white dark:bg-gray-800 border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr
+                                    class="bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 text-xs uppercase font-bold tracking-wider">
+                                    <th class="p-3 sm:p-4 border-b dark:border-gray-700">Game</th>
+                                    <th class="p-3 sm:p-4 border-b dark:border-gray-700">Category</th>
+                                    <th class="p-3 sm:p-4 border-b dark:border-gray-700 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                {% for game in games_pagination.items %}
+                                <!-- 🚀 Dynamic Row Background for Disabled Games -->
+                                <tr
+                                    class="border-b dark:border-gray-700 transition-colors {% if not game.is_active %}bg-red-50 dark:bg-red-900/10 opacity-75{% else %}hover:bg-gray-50 dark:hover:bg-gray-700{% endif %}">
+                                    <td class="p-3 sm:p-4 font-semibold align-middle min-w-[200px]">
+                                        <div class="flex items-center gap-2 sm:gap-3">
+                                            <div class="relative flex-shrink-0">
+                                                <img src="{{ game.image_url }}" alt=""
+                                                    onerror="this.onerror=null; this.src='https://via.placeholder.com/40/333/fff?text=🎮'"
+                                                    class="w-10 h-10 object-cover rounded-lg bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 {% if not game.is_active %}grayscale{% endif %}">
+                                                {% if not game.is_active %}
+                                                <span class="absolute -top-2 -right-2 text-lg drop-shadow-md">🛑</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="overflow-hidden">
+                                                <span
+                                                    class="text-sm sm:text-base truncate block max-w-[150px] sm:max-w-[250px] {% if not game.is_active %}line-through text-red-600 dark:text-red-400{% endif %}">{{
+                                                    game.name }}</span>
+                                                <div class="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
+                                                        </path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                                        </path>
+                                                    </svg> {{ game.views }}
+                                                    <!-- 🚀 Display Active/Disabled Badge -->
+                                                    {% if game.is_active %}
+                                                    <span
+                                                        class="ml-2 text-[9px] uppercase tracking-wider text-green-600 font-bold">🟢
+                                                        Active</span>
+                                                    {% else %}
+                                                    <span
+                                                        class="ml-2 text-[9px] uppercase tracking-wider text-red-600 font-bold">🔴
+                                                        Disabled</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td
+                                        class="p-3 sm:p-4 uppercase text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider align-middle">
+                                        <div class="flex items-center gap-1">
+                                            {{ dynamic_icons.get(game.category|lower, '🎮') if dynamic_icons else '🎮'
+                                            }}
+                                            {{ game.category }}
+                                        </div>
+                                    </td>
+                                    <td class="p-3 sm:p-4 text-center align-middle">
+                                        <div class="flex justify-center gap-2">
+                                            <a href="/gamesecurity/edit_game/{{ game.id }}"
+                                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-xs sm:text-sm font-bold shadow shadow-blue-700/30 transition">✏️
+                                                Edit</a>
+                                            <!-- 🚀 New Auto-Moderation Toggle Button -->
+                                            {% if game.is_active %}
+                                            <a href="/gamesecurity/toggle_game/{{ game.id }}"
+                                                class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded text-xs sm:text-sm font-bold shadow shadow-yellow-700/30 transition"
+                                                onclick="return confirm('Disable {{ game.name }}? It will be hidden from users.')">⏸️
+                                                Disable</a>
+                                            {% else %}
+                                            <a href="/gamesecurity/toggle_game/{{ game.id }}"
+                                                class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-xs sm:text-sm font-bold shadow shadow-green-700/30 transition"
+                                                onclick="return confirm('Enable {{ game.name }}? It will be visible to users again.')">▶️
+                                                Enable</a>
+                                            {% endif %}
+                                            <a href="/gamesecurity/delete_game/{{ game.id }}"
+                                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-xs sm:text-sm font-bold shadow shadow-red-700/30 transition"
+                                                onclick="return confirm('Permanently delete {{ game.name }}? This cannot be undone!')">🗑️
+                                                Delete</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3"
+                                        class="p-8 sm:p-10 text-center text-gray-500 font-semibold bg-gray-50 dark:bg-gray-800/50">
+                                        No games found!
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if games_pagination.pages > 1 %}
+                    <div class="mt-6 flex flex-wrap justify-center items-center gap-2">
+                        {% if games_pagination.has_prev %}
+                        <a href="{{ url_for('admin_dashboard', game_page=games_pagination.prev_num, game_search=request.args.get('game_search', ''), user_email=request.args.get('user_email', '')) }}"
+                            class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-bold text-xs sm:text-sm transition-colors shadow-sm">&laquo;
+                            Prev</a>
+                        {% endif %}
+
+                        <span
+                            class="px-4 py-2 font-bold text-xs sm:text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg border border-transparent">Page
+                            {{ games_pagination.page }} of {{ games_pagination.pages }}</span>
+
+                        {% if games_pagination.has_next %}
+                        <a href="{{ url_for('admin_dashboard', game_page=games_pagination.next_num, game_search=request.args.get('game_search', ''), user_email=request.args.get('user_email', '')) }}"
+                            class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-bold text-xs sm:text-sm transition-colors shadow-sm">Next
+                            &raquo;</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 📄 Footer Pages -->
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 sm:p-6 mt-4 transition-colors duration-300">
+                <h2
+                    class="text-lg sm:text-xl font-bold mb-4 text-gray-800 dark:text-white border-b dark:border-gray-700 pb-2 flex items-center gap-2">
+                    📄 Manage Dynamic Footer Pages
+                </h2>
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <div class="w-full lg:w-1/3">
+                        <form action="/gamesecurityadmin" method="POST" class="space-y-4">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <input type="hidden" name="form_type" value="add_page">
+                            <input type="text" name="page_title" placeholder="Page Title (e.g., Privacy Policy)"
+                                required
+                                class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-900 dark:border-gray-600 transition">
+                            <textarea name="page_content" placeholder="Page HTML Content..." required
+                                class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-900 dark:border-gray-600 h-32"></textarea>
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-700/20 transition-colors">➕
+                                Create Page</button>
+                        </form>
+                    </div>
+                    <div class="w-full lg:w-2/3">
+                        <div
+                            class="overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700 shadow-inner w-full">
+                            <table class="w-full text-left bg-gray-50 dark:bg-gray-900/40 whitespace-nowrap">
+                                <thead
+                                    class="text-gray-700 dark:text-gray-300 text-xs uppercase font-bold tracking-wider">
+                                    <tr class="bg-gray-100 dark:bg-gray-900">
+                                        <th class="p-3 sm:p-4">Title</th>
+                                        <th class="p-3 sm:p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">
+                                    {% for page in all_pages %}
+                                    <tr
+                                        class="border-t dark:border-gray-700 transition-colors hover:bg-white dark:hover:bg-gray-800">
+                                        <td class="p-3 sm:p-4 font-semibold">{{ page.title }}</td>
+                                        <td class="p-3 sm:p-4 text-right">
+                                            <div class="flex justify-end gap-2">
+                                                <a href="/gamesecurity/edit_page/{{ page.id }}"
+                                                    class="bg-blue-100 dark:bg-gray-700 text-blue-600 dark:text-blue-300 px-3 py-1.5 rounded text-xs sm:text-sm font-bold transition">✏️
+                                                    Edit</a>
+                                                <a href="/gamesecurity/delete_page/{{ page.id }}"
+                                                    class="bg-red-100 dark:bg-gray-700 text-red-600 dark:text-red-300 px-3 py-1.5 rounded text-xs sm:text-sm font-bold transition"
+                                                    onclick="return confirm('Completely delete {{ page.title }}?')">🗑️
+                                                    Delete</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="2"
+                                            class="p-8 text-center text-gray-500 font-semibold bg-gray-50 dark:bg-gray-800/50">
+                                            No footer pages yet!
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🚀 HYBRID SEO: Category Content Management -->
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4 sm:p-6 mt-4 transition-colors duration-300">
+                <h2
+                    class="text-lg sm:text-xl font-bold mb-4 text-gray-800 dark:text-white border-b dark:border-gray-700 pb-2 flex items-center gap-2">
+                    🔍 Manage Category SEO & Content
+                </h2>
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <div class="w-full lg:w-1/3">
+                        <form action="/gamesecurityadmin" method="POST" class="space-y-4">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <input type="hidden" name="form_type" value="update_category_seo">
+
+                            <select name="category_name" required
+                                class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-900 dark:border-gray-600 transition cursor-pointer font-bold capitalize">
+                                <option value="" disabled selected>Select Category...</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat }}">{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <input type="text" name="seo_title" placeholder="SEO Title (e.g., Get Ready for Action)"
+                                required
+                                class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-900 dark:border-gray-600 transition">
+
+                            <textarea name="seo_content" placeholder="Paste Full HTML/Text Content & FAQs here..."
+                                required
+                                class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-900 dark:border-gray-600 h-40"></textarea>
+
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-700/20 transition-colors">💾
+                                Save SEO Content</button>
+                        </form>
+                    </div>
+                    <div class="w-full lg:w-2/3">
+                        <div
+                            class="overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700 shadow-inner w-full">
+                            <table class="w-full text-left bg-gray-50 dark:bg-gray-900/40 whitespace-nowrap">
+                                <thead
+                                    class="text-gray-700 dark:text-gray-300 text-xs uppercase font-bold tracking-wider">
+                                    <tr class="bg-gray-100 dark:bg-gray-900">
+                                        <th class="p-3 sm:p-4">Category</th>
+                                        <th class="p-3 sm:p-4">SEO Title</th>
+                                        <th class="p-3 sm:p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">
+                                    <!-- 🚀 Update: Category SEO Pagination Loop -->
+                                    {% for seo in category_seo_pagination.items %}
+                                    <tr
+                                        class="border-t dark:border-gray-700 transition-colors hover:bg-white dark:hover:bg-gray-800">
+                                        <td class="p-3 sm:p-4 font-bold uppercase tracking-wider text-xs align-middle">
+                                            <div class="flex items-center gap-1">
+                                                {{ seo.icon }} {{ seo.category_name }}
+                                            </div>
+                                        </td>
+                                        <td
+                                            class="p-3 sm:p-4 text-gray-600 dark:text-gray-400 truncate max-w-[200px] align-middle">
+                                            {{ seo.title }}
+                                        </td>
+                                        <td class="p-3 sm:p-4 text-right align-middle">
+                                            <a href="/gamesecurity/delete_category_seo/{{ seo.id }}"
+                                                class="bg-red-100 dark:bg-gray-700 text-red-600 dark:text-red-300 px-3 py-1.5 rounded text-xs sm:text-sm font-bold transition"
+                                                onclick="return confirm('Delete SEO content for {{ seo.category_name }}?')">🗑️
+                                                Delete</a>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="3"
+                                            class="p-8 text-center text-gray-500 font-semibold bg-gray-50 dark:bg-gray-800/50">
+                                            No category SEO content added yet!
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 🚀 Update: Category SEO Pagination UI -->
+                        {% if category_seo_pagination.pages > 1 %}
+                        <div class="mt-4 flex justify-center items-center gap-2">
+                            {% if category_seo_pagination.has_prev %}
+                            <a href="{{ url_for('admin_dashboard', seo_page=category_seo_pagination.prev_num) }}"
+                                class="px-3 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 text-xs font-bold">&laquo;
+                                Prev</a>
+                            {% endif %}
+                            <span class="px-3 py-1 font-bold text-xs text-gray-600 dark:text-gray-400">Page {{
+                                category_seo_pagination.page }} of {{ category_seo_pagination.pages }}</span>
+                            {% if category_seo_pagination.has_next %}
+                            <a href="{{ url_for('admin_dashboard', seo_page=category_seo_pagination.next_num) }}"
+                                class="px-3 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-100 text-xs font-bold">Next
+                                &raquo;</a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <p class="text-xs text-gray-500 mt-3 flex items-center gap-1">💡 <span><b>Pro Tip:</b> To edit
+                                existing content, just select the category again and save. It will automatically
+                                overwrite the old data.</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 👥 Manage Users -->
+            <div
+                class="bg-gray-50 dark:bg-gray-700 p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm mt-8">
+                <h2 class="text-lg sm:text-xl font-bold mb-4 border-b pb-2 dark:border-gray-600">👥 Manage Users (Gamer
+                    Accounts)</h2>
+
+                <form action="/gamesecurityadmin" method="GET" class="mb-6 flex flex-col sm:flex-row gap-3">
+                    {% if request.args.get('game_search') %}
+                    <input type="hidden" name="game_search" value="{{ request.args.get('game_search') }}">
+                    {% endif %}
+                    {% if request.args.get('game_page') %}
+                    <input type="hidden" name="game_page" value="{{ request.args.get('game_page') }}">
+                    {% endif %}
+
+                    <input type="text" name="user_email" value="{{ request.args.get('user_email', '') }}"
+                        placeholder="Search user by email address..."
+                        class="w-full sm:w-2/3 border p-3 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none dark:bg-gray-900 dark:border-gray-600">
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button type="submit"
+                            class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition-colors shadow">Search</button>
+                        {% if request.args.get('user_email') %}
+                        <a href="{{ url_for('admin_dashboard', game_search=request.args.get('game_search', ''), game_page=request.args.get('game_page', 1)) }}"
+                            class="flex-1 sm:flex-none bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-bold transition-colors text-center shadow flex items-center justify-center">Clear</a>
+                        {% endif %}
+                    </div>
+                </form>
+
+                {% if request.args.get('user_email') %}
+                <div
+                    class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-inner bg-white dark:bg-gray-800 w-full">
+                    <table class="w-full text-left bg-transparent border-collapse whitespace-nowrap">
+                        <thead class="text-gray-700 dark:text-gray-300 text-xs uppercase font-bold tracking-wider">
+                            <tr class="bg-gray-100 dark:bg-gray-900">
+                                <th class="p-3 sm:p-4 border-b dark:border-gray-700 font-bold">Username</th>
+                                <th class="p-3 sm:p-4 border-b dark:border-gray-700 font-bold">Email Address</th>
+                                <th class="p-3 sm:p-4 border-b dark:border-gray-700 font-bold text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            {% for user in users %}
+                            <tr
+                                class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <td class="p-3 sm:p-4 font-semibold text-gray-800 dark:text-gray-200">{{ user.username
+                                    }}</td>
+                                <td class="p-3 sm:p-4 text-gray-600 dark:text-gray-400">{{ user.email }}</td>
+                                <td class="p-3 sm:p-4 text-center">
+                                    <div class="flex justify-center gap-3">
+                                        <a href="/gamesecurity/user_favorites/{{ user.id }}"
+                                            class="text-blue-500 hover:text-blue-700 font-bold transition-colors bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded">📂
+                                            Favs</a>
+                                        <a href="/gamesecurity/delete_user/{{ user.id }}"
+                                            class="text-red-500 hover:text-red-700 font-bold transition-colors bg-red-50 dark:bg-red-900/30 px-3 py-1.5 rounded"
+                                            onclick="return confirm('Are you sure you want to completely delete this user account?')">❌
+                                            Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3"
+                                    class="p-8 sm:p-10 text-center text-gray-500 font-semibold bg-gray-50 dark:bg-gray-800/50">
+                                    No user found with this email.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div
+                    class="py-10 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 mx-2">
+                    <p class="text-sm sm:text-base">Use the search box above to find and manage a user.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 🚀 PHASE 4: Modals for Preview & Reject -->
+    <!-- 👁️ Preview Modal (Sandbox Mode) -->
+    <div id="previewModal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg">👁️ Secure Game Preview (Sandbox)</h3>
+                <button onclick="closePreviewModal()"
+                    class="text-gray-400 hover:text-white font-bold text-2xl transition">&times;</button>
+            </div>
+            <div class="w-full aspect-video bg-black relative">
+                <!-- Sandbox prevents popups, top-navigation, and data theft -->
+                <iframe id="previewIframe" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin"
+                    src=""></iframe>
+            </div>
+            <div
+                class="p-4 bg-gray-50 dark:bg-gray-900 text-xs text-gray-500 text-center border-t dark:border-gray-700">
+                ⚠️ This game is running in restricted Sandbox mode. Links inside the game will not open new tabs.
+            </div>
+        </div>
+    </div>
+
+    <!-- ❌ Reject Modal -->
+    <div id="rejectModal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div
+            class="bg-white dark:bg-gray-800 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-red-200 dark:border-red-900/50">
+            <div class="bg-red-600 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg">❌ Reject Game Submission</h3>
+                <button onclick="closeRejectModal()"
+                    class="text-red-200 hover:text-white font-bold text-2xl transition">&times;</button>
+            </div>
+            <form id="rejectForm" method="POST" action="" class="p-6 flex flex-col gap-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <div>
+                    <label class="block font-bold text-gray-700 dark:text-gray-300 mb-2 text-sm">Reason for Rejection
+                        <span class="text-red-500">*</span></label>
+                    <p class="text-xs text-gray-500 mb-2">This will be sent directly to the developer's dashboard.</p>
+                    <textarea name="reason" required
+                        placeholder="e.g., The game link is broken, or it contains excessive pop-up ads."
+                        class="w-full border p-3 rounded-lg focus:ring-1 focus:ring-red-500 outline-none dark:bg-gray-900 dark:border-gray-600 h-32"></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeRejectModal()"
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-2.5 rounded-lg transition">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition shadow">Confirm
+                        Reject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts for Charts & UI Interactivity -->
+    <script id="chartLabels" type="application/json">{{ chart_labels | tojson | safe }}</script>
+    <script id="chartData" type="application/json">{{ chart_data | tojson | safe }}</script>
+
+    <script>
+        // 🚀 PHASE 4.2: Dynamic Translation Fetch & Update AJAX Logic
+        function showTransStatus(message, isError = false) {
+            const statusDiv = document.getElementById('trans-status-msg');
+            statusDiv.textContent = message;
+            statusDiv.classList.remove('hidden', 'text-green-600', 'text-red-600', 'dark:text-green-400', 'dark:text-red-400');
+
+            if (isError) {
+                statusDiv.classList.add('text-red-600', 'dark:text-red-400');
+            } else {
+                statusDiv.classList.add('text-green-600', 'dark:text-green-400');
+            }
+
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 3000);
+        }
+
+        function fetchTranslationData() {
+            const gameId = document.getElementById('trans-game-select').value;
+            const langCode = document.getElementById('trans-lang-select').value;
+
+            if (!gameId || !langCode) {
+                showTransStatus("⚠️ Please select both a Game and a Language.", true);
+                return;
+            }
+
+            const loader = document.getElementById('fetch-loader');
+            const btnSpan = document.querySelector('#btn-fetch-trans span');
+
+            loader.classList.remove('hidden');
+            btnSpan.textContent = "Fetching...";
+
+            fetch(`/gamesecurity/fetch_translation/${gameId}/${langCode}`)
+                .then(res => res.json())
+                .then(response => {
+                    loader.classList.add('hidden');
+                    btnSpan.textContent = "📥 Fetch Translation";
+
+                    if (response.status === 'success' || response.status === 'not_found') {
+                        document.getElementById('trans-game-id').value = gameId;
+                        document.getElementById('trans-lang-code').value = langCode;
+
+                        document.getElementById('trans-desc').value = response.data.description;
+                        document.getElementById('trans-how').value = response.data.how_to_play;
+                        document.getElementById('trans-controls').value = response.data.controls;
+                        document.getElementById('trans-faqs').value = response.data.faqs;
+
+                        // Remove Overlay
+                        document.getElementById('trans-overlay').classList.add('hidden');
+
+                        if (response.status === 'not_found') {
+                            showTransStatus("📝 No translation found. You can write a new one.");
+                        } else {
+                            showTransStatus("✅ Translation loaded perfectly!");
+                        }
+                    } else {
+                        showTransStatus("❌ Error fetching data.", true);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    loader.classList.add('hidden');
+                    btnSpan.textContent = "📥 Fetch Translation";
+                    showTransStatus("❌ Network error.", true);
+                });
+        }
+
+        function saveTranslationData() {
+            const gameId = document.getElementById('trans-game-id').value;
+            const langCode = document.getElementById('trans-lang-code').value;
+
+            if (!gameId || !langCode) return;
+
+            const payload = {
+                game_id: gameId,
+                language_code: langCode,
+                description: document.getElementById('trans-desc').value,
+                how_to_play: document.getElementById('trans-how').value,
+                controls: document.getElementById('trans-controls').value,
+                faqs: document.getElementById('trans-faqs').value
+            };
+
+            const loader = document.getElementById('save-loader');
+            const btnSpan = document.querySelector('#btn-save-trans span');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            loader.classList.remove('hidden');
+            btnSpan.textContent = "Saving...";
+
+            fetch('/gamesecurity/update_translation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(response => {
+                    loader.classList.add('hidden');
+                    btnSpan.textContent = "💾 Save Changes";
+
+                    if (response.status === 'success') {
+                        showTransStatus(response.message);
+                    } else {
+                        showTransStatus(response.message || "❌ Failed to save.", true);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    loader.classList.add('hidden');
+                    btnSpan.textContent = "💾 Save Changes";
+                    showTransStatus("❌ Network error while saving.", true);
+                });
+        }
+
+
+        // 🚀 NEW: Auto-Hide Flash Messages like Toasts
+        document.addEventListener("DOMContentLoaded", function () {
+            const flashContainer = document.getElementById('flash-messages-container');
+            if (flashContainer) {
+                setTimeout(() => {
+                    const messages = flashContainer.querySelectorAll('.flash-message');
+                    messages.forEach(msg => {
+                        msg.classList.remove('opacity-100');
+                        msg.classList.add('opacity-0', '-translate-y-4');
+                    });
+                    setTimeout(() => flashContainer.remove(), 500); // Fully remove from DOM after fade-out
+                }, 3500); // Auto-hides after 3.5 seconds
+            }
+        });
+
+        // 🚀 LIVE PREVIEW LOGIC FOR PUSH NOTIFICATION
+        function updatePushPreview() {
+            const title = document.getElementById('push-title').value;
+            const message = document.getElementById('push-message').value;
+            const imgUrl = document.getElementById('push-image').value;
+
+            document.getElementById('preview-title').textContent = title || "Notification Title";
+            document.getElementById('preview-message').textContent = message || "Message body will appear here.";
+
+            const imgContainer = document.getElementById('preview-image-container');
+            const imgTag = document.getElementById('preview-img-tag');
+
+            if (imgUrl.trim() !== '') {
+                imgTag.src = imgUrl;
+                imgContainer.classList.remove('hidden');
+            } else {
+                imgTag.src = '';
+                imgContainer.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('topGamesChart').getContext('2d');
+            const labels = JSON.parse(document.getElementById('chartLabels').textContent);
+            const data = JSON.parse(document.getElementById('chartData').textContent);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Views',
+                        data: data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(156, 163, 175, 0.1)' } },
+                        x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 45 } }
+                    }
+                }
+            });
+        });
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            let isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+
+        // 🚀 HYBRID SEO: Smart Dropdown UI Logic
+        function handleCatChange(selectElement) {
+            let realCat = document.getElementById('real-category');
+            let newCatGroup = document.getElementById('new-cat-group');
+            let newCatText = document.getElementById('new-cat-text');
+
+            if (selectElement.value === '__new__') {
+                selectElement.classList.add('hidden');
+                selectElement.removeAttribute('required');
+
+                newCatGroup.classList.remove('hidden');
+                newCatGroup.classList.add('flex');
+
+                newCatText.setAttribute('required', 'true');
+                newCatText.focus();
+                newCatText.value = '';
+                realCat.value = '';
+            } else {
+                realCat.value = selectElement.value;
+            }
+        }
+
+        function updateRealCat(val) {
+            document.getElementById('real-category').value = val.trim();
+        }
+
+        function cancelNewCat() {
+            let selectElement = document.getElementById('cat-select');
+            let realCat = document.getElementById('real-category');
+            let newCatGroup = document.getElementById('new-cat-group');
+            let newCatText = document.getElementById('new-cat-text');
+
+            newCatGroup.classList.add('hidden');
+            newCatGroup.classList.remove('flex');
+            newCatText.removeAttribute('required');
+
+            selectElement.classList.remove('hidden');
+            selectElement.setAttribute('required', 'true');
+            selectElement.value = '';
+            realCat.value = '';
+        }
+
+        // 🚀 PHASE 4: Modal Logic for QA System
+        function openPreviewModal(url) {
+            const modal = document.getElementById('previewModal');
+            const iframe = document.getElementById('previewIframe');
+            iframe.src = url;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closePreviewModal() {
+            const modal = document.getElementById('previewModal');
+            const iframe = document.getElementById('previewIframe');
+            iframe.src = ''; // Stop video/audio playing in background
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openRejectModal(subId, gameName) {
+            const modal = document.getElementById('rejectModal');
+            const form = document.getElementById('rejectForm');
+            form.action = `/gamesecurity/reject_submission/${subId}`;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRejectModal() {
+            const modal = document.getElementById('rejectModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    </script>
+</body>
+
+</html>

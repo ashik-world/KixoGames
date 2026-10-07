@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - KixoGames</title>
+    <style>
+        /* 🚀 Internal CSS mimicing Tailwind Dark Mode & Glassmorphism */
+        :root {
+            --bg-color: #111827;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --glass-bg: rgba(31, 41, 55, 0.7);
+            --glass-border: rgba(55, 65, 81, 0.8);
+            --glow-blue: 0 0 15px rgba(59, 130, 246, 0.6);
+            --glow-red: 0 0 15px rgba(239, 68, 68, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 1rem;
+            background-image: radial-gradient(circle at center, #1f2937 0%, #111827 100%);
+        }
+
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #3b82f6, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .cell {
+            background-color: rgba(17, 24, 39, 0.8);
+            border: 2px solid var(--glass-border);
+            border-radius: 0.75rem;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell:hover {
+            background-color: rgba(55, 65, 81, 0.8);
+            border-color: var(--primary);
+            box-shadow: var(--glow-blue);
+        }
+
+        .cell.x {
+            color: #ef4444;
+            text-shadow: var(--glow-red);
+        }
+
+        .cell.o {
+            color: #3b82f6;
+            text-shadow: var(--glow-blue);
+        }
+
+        .status {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            min-height: 1.75rem;
+            color: #e5e7eb;
+            transition: color 0.3s ease;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--glow-blue);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Spinner for Reconnecting */
+        .loader {
+            display: inline-block;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 3px solid rgba(16, 185, 129, 0.3);
+            border-radius: 50%;
+            border-top-color: #10b981;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+            display: none;
+        }
+
+        .reconnecting .loader {
+            display: inline-block;
+        }
+
+        .reconnecting .status {
+            color: #10b981;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>KixoGames</h1>
+        <p id="subtext">You are offline. Play Tic-Tac-Toe while you wait!</p>
+
+        <div class="status" id="status">Player X's Turn</div>
+
+        <div class="board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+
+        <button class="btn" id="restartBtn">Restart Game</button>
+    </div>
+
+    <script>
+        // 🚀 Tic-Tac-Toe Game Logic
+        const cells = document.querySelectorAll('.cell');
+        const statusText = document.getElementById('status');
+        const restartBtn = document.getElementById('restartBtn');
+        const subtext = document.getElementById('subtext');
+
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let isGameActive = true;
+
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6]             // Diagonals
+        ];
+
+        function handleCellClick(e) {
+            const cell = e.target;
+            const index = cell.getAttribute('data-index');
+
+            if (board[index] !== '' || !isGameActive) return;
+
+            board[index] = currentPlayer;
+            cell.textContent = currentPlayer;
+            cell.classList.add(currentPlayer.toLowerCase());
+
+            checkWinner();
+        }
+
+        function checkWinner() {
+            let roundWon = false;
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    roundWon = true;
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                statusText.textContent = `Player ${currentPlayer} Wins! 🏆`;
+                isGameActive = false;
+                return;
+            }
+
+            if (!board.includes('')) {
+                statusText.textContent = 'Game Ended in a Draw! 🤝';
+                isGameActive = false;
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            statusText.textContent = `Player ${currentPlayer}'s Turn`;
+        }
+
+        function restartGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            isGameActive = true;
+            statusText.textContent = `Player ${currentPlayer}'s Turn`;
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.className = 'cell';
+            });
+        }
+
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+        restartBtn.addEventListener('click', restartGame);
+
+        // 🚀 THE MAGIC: Auto-Reconnect Logic
+        window.addEventListener('online', () => {
+            // Disable game to prevent clicking while reloading
+            isGameActive = false;
+
+            // Show reconnecting UI
+            document.body.classList.add('reconnecting');
+            statusText.innerHTML = '<span class="loader"></span> Reconnecting...';
+            subtext.textContent = 'Internet restored! Loading KixoGames...';
+
+            // Reload page to original URL seamlessly after 1.5 seconds
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        });
+    </script>
+</body>
+
+</html>

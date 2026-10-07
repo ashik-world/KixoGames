@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit {{ game.name }} - KixoGames Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 text-gray-900 p-8 font-sans flex justify-center items-center min-h-screen">
+    <div class="w-full max-w-2xl bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+        <div class="bg-blue-600 text-white p-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">✏️ Edit Game: {{ game.name }}</h1>
+            <a href="/gamesecurityadmin"
+                class="bg-blue-800 hover:bg-blue-900 px-4 py-2 rounded-lg font-bold text-sm transition-colors">←
+                Cancel</a>
+        </div>
+        <div class="p-8">
+            <!-- 🚀 Phase 2 Update: enctype="multipart/form-data" added -->
+            <form action="/gamesecurity/edit_game/{{ game.id }}" method="POST" enctype="multipart/form-data"
+                class="space-y-5">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <div>
+                    <label class="block font-semibold text-sm text-gray-700 mb-1">Game Name</label>
+                    <input type="text" name="name" value="{{ game.name }}" required
+                        class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block font-semibold text-sm text-gray-700 mb-1">Game URL (iFrame Source)</label>
+                    <input type="url" name="url" value="{{ game.url }}" required
+                        class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block font-semibold text-sm text-gray-700 mb-1">Description</label>
+                    <textarea name="description" required
+                        class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 h-24">{{ game.description }}</textarea>
+                </div>
+
+                <!-- 🚀 ADVANCED SEO FIELDS -->
+                <div>
+                    <label class="block font-semibold text-sm text-gray-700 mb-1">Tags (Comma-separated)</label>
+                    <input type="text" name="tags" value="{{ game.tags or '' }}"
+                        placeholder="e.g., zombie, multiplayer, action"
+                        class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block font-semibold text-sm text-gray-700 mb-1">Controls (e.g., W A S D to
+                        move)</label>
+                    <input type="text" name="controls" value="{{ game.controls or '' }}"
+                        placeholder="e.g., W A S D to move, CLICK to shoot"
+                        class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block font-semibold text-sm text-gray-700 mb-1">How to Play</label>
+                    <textarea name="how_to_play" placeholder="Explain the rules and objectives..."
+                        class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 h-24">{{ game.how_to_play or '' }}</textarea>
+                </div>
+                <div>
+                    <label class="block font-semibold text-sm text-gray-700 mb-1">Frequently Asked Questions (HTML
+                        allowed)</label>
+                    <textarea name="faqs" placeholder="<strong>Q: How do I win?</strong><br>A: Survive the wave."
+                        class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 h-24">{{ game.faqs or '' }}</textarea>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="w-1/2">
+                        <label class="block font-semibold text-sm text-gray-700 mb-1">Category</label>
+
+                        <!-- 🚀 HYBRID SEO: Smart Category Dropdown for Edit Page -->
+                        <select name="category" required
+                            class="w-full border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none capitalize cursor-pointer font-bold">
+
+                            <!-- Default Predefined Categories -->
+                            {% set base_cats = ['action', 'racing', 'puzzle', 'sport', 'arcade', 'strategy',
+                            'adventure', 'shooting', 'simulation', 'board'] %}
+                            {% for cat in base_cats %}
+                            <option value="{{ cat }}" {% if game.category|lower==cat %}selected{% endif %}>{{ cat |
+                                capitalize }}</option>
+                            {% endfor %}
+
+                            <!-- Any Custom Categories from Database -->
+                            {% for cat in categories %}
+                            {% if cat|lower not in base_cats %}
+                            <option value="{{ cat }}" {% if game.category|lower==cat|lower %}selected{% endif %}>{{ cat
+                                | capitalize }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="w-1/2">
+                        <label class="block font-semibold text-sm text-gray-700 mb-1">Color Theme</label>
+                        <!-- 🚀 UPDATE: Synchronized Color Themes -->
+                        <select name="color"
+                            class="w-full border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="blue" {% if game.color=='blue' %}selected{% endif %}>Blue</option>
+                            <option value="purple" {% if game.color=='purple' %}selected{% endif %}>Purple</option>
+                            <option value="green" {% if game.color=='green' %}selected{% endif %}>Green</option>
+                            <option value="red" {% if game.color=='red' %}selected{% endif %}>Red</option>
+                            <option value="orange" {% if game.color=='orange' %}selected{% endif %}>Orange</option>
+                            <option value="yellow" {% if game.color=='yellow' %}selected{% endif %}>Yellow</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 🚀 Phase 2 Update: File Inputs for Image and Preview -->
+                <div>
+                    <label class="block font-semibold text-sm text-gray-700 mb-1">Update Thumbnail Image (Leave blank to
+                        keep current)</label>
+                    <input type="file" name="image_file" accept="image/jpeg, image/png, image/webp"
+                        class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <p class="text-xs text-gray-500 mt-2">Current: <a href="{{ game.image_url }}" target="_blank"
+                            class="text-blue-600 font-bold hover:underline">View Image</a></p>
+                </div>
+                <div>
+                    <label class="block font-semibold text-sm text-gray-700 mb-1">Update Preview Video/GIF (Leave blank
+                        to keep current)</label>
+                    <input type="file" name="preview_file" accept="video/mp4, video/webm, image/gif"
+                        class="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300">
+                    {% if game.preview_url %}
+                    <p class="text-xs text-gray-500 mt-2">Current: <a href="{{ game.preview_url }}" target="_blank"
+                            class="text-blue-600 font-bold hover:underline">View Preview</a></p>
+                    {% endif %}
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition-colors text-lg mt-4">
+                    💾 Update Game
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

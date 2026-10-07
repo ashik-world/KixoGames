@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    
+    <!-- Homepage -->
+    <url>
+        <loc>{{ base_url }}/</loc>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+        <!-- 🚀 PHASE 3: Global SEO Hreflang Tags -->
+        <xhtml:link rel="alternate" hreflang="en" href="{{ base_url }}/" />
+        {% if available_langs %}
+        {% for lang in available_langs %}
+            {% if lang != 'en' %}
+            <xhtml:link rel="alternate" hreflang="{{ lang }}" href="{{ base_url }}/{{ lang }}/" />
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+        <xhtml:link rel="alternate" hreflang="x-default" href="{{ base_url }}/" />
+    </url>
+
+    <!-- Categories -->
+    {% for cat in categories %}
+    <url>
+        <loc>{{ base_url }}/?category={{ cat }}</loc>
+        <changefreq>daily</changefreq>
+        <priority>0.8</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="{{ base_url }}/?category={{ cat }}" />
+        {% if available_langs %}
+        {% for lang in available_langs %}
+            {% if lang != 'en' %}
+            <xhtml:link rel="alternate" hreflang="{{ lang }}" href="{{ base_url }}/{{ lang }}/?category={{ cat }}" />
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+        <xhtml:link rel="alternate" hreflang="x-default" href="{{ base_url }}/?category={{ cat }}" />
+    </url>
+    {% endfor %}
+
+    <!-- Individual Games -->
+    {% for game in games %}
+    <url>
+        <loc>{{ base_url }}/game/{{ game.category }}/{{ game.id }}/{{ game.name|slugify }}</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+        
+        <xhtml:link rel="alternate" hreflang="en" href="{{ base_url }}/game/{{ game.category }}/{{ game.id }}/{{ game.name|slugify }}" />
+        {% if available_langs %}
+        {% for lang in available_langs %}
+            {% if lang != 'en' %}
+            <xhtml:link rel="alternate" hreflang="{{ lang }}" href="{{ base_url }}/{{ lang }}/game/{{ game.category }}/{{ game.id }}/{{ game.name|slugify }}" />
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+        <xhtml:link rel="alternate" hreflang="x-default" href="{{ base_url }}/game/{{ game.category }}/{{ game.id }}/{{ game.name|slugify }}" />
+
+        <!-- 🚀 PHASE 2: Advanced Image SEO -->
+        <image:image>
+            <image:loc>{{ game.image_url }}</image:loc>
+            <image:title>Play {{ game.name }} Free Online</image:title>
+            <image:caption>{{ game.description[:100] }}...</image:caption>
+        </image:image>
+        
+        <!-- 🚀 PHASE 2: Advanced Video SEO (Hover Previews) -->
+        {% if game.preview_url %}
+        <video:video>
+            <video:thumbnail_loc>{{ game.image_url }}</video:thumbnail_loc>
+            <video:title>{{ game.name }} Gameplay Preview</video:title>
+            <video:description>Watch the gameplay preview of {{ game.name }} instantly without buffering.</video:description>
+            <video:content_loc>{{ game.preview_url }}</video:content_loc>
+        </video:video>
+        {% endif %}
+    </url>
+    {% endfor %}
+
+    <!-- Legal/Static Pages -->
+    {% for page in pages %}
+    <url>
+        <loc>{{ base_url }}/page/{{ page.title|replace(' ', '-')|lower }}</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+        
+        <xhtml:link rel="alternate" hreflang="en" href="{{ base_url }}/page/{{ page.title|replace(' ', '-')|lower }}" />
+        {% if available_langs %}
+        {% for lang in available_langs %}
+            {% if lang != 'en' %}
+            <xhtml:link rel="alternate" hreflang="{{ lang }}" href="{{ base_url }}/{{ lang }}/page/{{ page.title|replace(' ', '-')|lower }}" />
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+        <xhtml:link rel="alternate" hreflang="x-default" href="{{ base_url }}/page/{{ page.title|replace(' ', '-')|lower }}" />
+    </url>
+    {% endfor %}
+</urlset>

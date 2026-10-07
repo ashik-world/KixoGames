@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% if current_tag %}Play Free {{ current_tag|title }} Games Online - KixoGames{% elif current_category and
+        current_category != 'all' %}{{ category_seo.title if category_seo and current_language == 'en' else
+        category_seo.title ~ ' Games' if category_seo else 'Play Free ' ~ current_category | capitalize ~ ' Games Online
+        - KixoGames' }}{% elif search_query %}Search Results for "{{ search_query }}" - KixoGames{% else %}KixoGames -
+        Free Online Games{% endif %}</title>
+
+    <meta name="description"
+        content="{% if current_tag %}Discover top {{ current_tag }} games directly in your browser.{% elif current_category and current_category != 'all' %}{{ category_seo.content | striptags | truncate(150) if category_seo else 'Play the best free ' ~ current_category | capitalize ~ ' games online.' }}{% elif search_query %}Find the best online games for {{ search_query }} at KixoGames.{% else %}Play thousands of free online games directly in your browser. All your favorite categories like action, puzzle, racing, and arcade are here.{% endif %}">
+
+    <meta name="keywords"
+        content="{% if current_tag %}{{ current_tag }} games, play {{ current_tag }} games, {% elif current_category and current_category != 'all' %}{{ current_category }} games, play {{ current_category }} games, {% endif %}free online games, play games, browser games, KixoGames">
+
+    <!-- 🚀 PHASE 2: Smart Canonical & Robots (Prevents Duplicate Content Penalties) -->
+    <link rel="canonical"
+        href="{{ request.base_url }}{% if current_tag %}?tag={{ current_tag }}{% elif request.args.get('category') and current_category != 'all' %}?category={{ request.args.get('category') }}{% endif %}">
+
+    {% if search_query %}
+    <meta name="robots" content="noindex, follow">
+    {% else %}
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    {% endif %}
+
+    <!-- 🚀 PHASE 3.1: Global SEO Hreflang Tags for Multi-Language -->
+    {% set clean_path = request.path %}
+    {% if current_language and current_language != 'en' and clean_path.startswith('/' ~ current_language ~ '/') %}
+    {% set clean_path = clean_path[current_language|length + 1:] %}
+    {% elif current_language and current_language != 'en' and clean_path == '/' ~ current_language %}
+    {% set clean_path = '/' %}
+    {% endif %}
+
+    <link rel="alternate" hreflang="en" href="{{ request.host_url.rstrip('/') }}{{ clean_path }}" />
+    {% if available_languages %}
+    {% for lang_code in available_languages.keys() %}
+    {% if lang_code != 'en' %}
+    <link rel="alternate" hreflang="{{ lang_code }}"
+        href="{{ request.host_url.rstrip('/') }}/{{ lang_code }}{{ clean_path if clean_path != '/' else '' }}" />
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+    <link rel="alternate" hreflang="x-default" href="{{ request.host_url.rstrip('/') }}{{ clean_path }}" />
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <meta property="og:title"
+        content="{% if current_tag %}Play Free {{ current_tag|title }} Games - KixoGames{% elif current_category and current_category != 'all' %}{{ category_seo.title if category_seo and current_language == 'en' else 'Play Free ' ~ current_category | capitalize ~ ' Games - KixoGames' }}{% else %}KixoGames - Free Online Games{% endif %}">
+    <meta property="og:description"
+        content="{% if current_tag %}Discover top {{ current_tag }} games directly in your browser.{% elif current_category and current_category != 'all' %}{{ category_seo.content | striptags | truncate(150) if category_seo else 'Play the best free ' ~ current_category | capitalize ~ ' games online.' }}{% else %}Play thousands of free online games directly in your browser.{% endif %}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+
+    <!-- 🚀 PHASE 1: Default Image & Image Dimensions for Large Card -->
+    <meta property="og:image"
+        content="https://via.placeholder.com/1200x630/111827/3b82f6?text=KixoGames+-+Play+Free+Online+Games">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- 🚀 PHASE 1: Twitter Cards Specific Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title"
+        content="{% if current_tag %}Play Free {{ current_tag|title }} Games - KixoGames{% elif current_category and current_category != 'all' %}{{ category_seo.title if category_seo and current_language == 'en' else 'Play Free ' ~ current_category | capitalize ~ ' Games - KixoGames' }}{% else %}KixoGames - Free Online Games{% endif %}">
+    <meta name="twitter:description"
+        content="{% if current_tag %}Discover top {{ current_tag }} games directly in your browser.{% elif current_category and current_category != 'all' %}{{ category_seo.content | striptags | truncate(150) if category_seo else 'Play the best free ' ~ current_category | capitalize ~ ' games online.' }}{% else %}Play thousands of free online games directly in your browser.{% endif %}">
+    <meta name="twitter:image"
+        content="https://via.placeholder.com/1200x630/111827/3b82f6?text=KixoGames+-+Play+Free+Online+Games">
+
+    {% if site_settings and site_settings.show_ads and site_settings.head_script %}
+    {{ site_settings.head_script | safe }}
+    {% endif %}
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "url": "{{ request.host_url }}",
+      "name": "KixoGames",
+      "description": "Play thousands of free online games directly in your browser.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ request.host_url }}?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "{{ request.host_url }}" }
+        {% if current_tag %}
+        ,{ "@type": "ListItem", "position": 2, "name": "{{ current_tag|title }} Games", "item": "{{ request.url }}" }
+        {% elif current_category and current_category != 'all' %}
+        ,{ "@type": "ListItem", "position": 2, "name": "{{ current_category | capitalize }} Games", "item": "{{ request.url }}" }
+        {% endif %}
+      ]
+    }
+    </script>
+
+    <!-- 🚀 PHASE 2 & 3.1: Advanced SEO (CollectionPage & Rich ItemList for Google Carousel with Dynamic Desc) -->
+    {% if games %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "{% if current_tag %}{{ current_tag|title }} Games{% elif current_category and current_category != 'all' %}{{ category_seo.title if category_seo and current_language == 'en' else current_category | capitalize ~ ' Games' }}{% elif search_query %}Search Results for {{ search_query }}{% else %}KixoGames - All Free Games{% endif %}",
+      "url": "{{ request.url }}",
+      "description": "{% if category_seo %}{{ category_seo.content | striptags | truncate(150) | replace('\n', ' ') | replace('\r', '') }}{% else %}Play the best free online games directly in your browser.{% endif %}",
+      "mainEntity": {
+        "@type": "ItemList",
+        "itemListOrder": "https://schema.org/ItemListOrderDescending",
+        "name": "Top Games",
+        "itemListElement": [
+          {% for name, details in games.items() %}
+          {
+            "@type": "ListItem",
+            "position": {{ loop.index }},
+            "item": {
+              "@type": "VideoGame",
+              "name": "{{ name }}",
+              "url": "{{ request.host_url[:-1] }}/game/{{ details.category }}/{{ details.id }}/{{ name|slugify }}",
+              "image": "{{ details.image_url }}",
+              "genre": "{{ details.category | capitalize }}",
+              "description": "{{ details.description | striptags | truncate(250) | replace('\n', ' ') | replace('\r', '') }}",
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": "{{ details.rating if details.rating > 0 else '4.8' }}",
+                "ratingCount": "{{ details.views if details.views > 0 else '150' }}"
+              }
+            }
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ]
+      }
+    }
+    </script>
+    {% endif %}
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/3b82f6/fff?text=GZ">
+
+    <!-- 🚀 UI POLISH: Premium Font (Nunito) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- 🚀 PWA Manifest & Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(reg => {
+                    console.log('ServiceWorker registered successfully! 🚀', reg.scope);
+                    if ('PushManager' in window && Notification.permission !== 'denied') {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                const applicationServerKey = 'BAGBZ-MsKEDxzfvG79ZdWhnvYAC6A47Ld3oDhcfMDbEB54O-gNaEMTSYOIDArlYuVFTHmFeRqfhiNJcIBeJrPwo';
+                                reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: applicationServerKey })
+                                    .then(sub => {
+                                        fetch('/api/push/subscribe', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+                                            body: JSON.stringify(sub)
+                                        });
+                                    }).catch(err => console.log('Push subscription failed:', err));
+                            }
+                        });
+                    }
+                }).catch(err => console.log('ServiceWorker registration failed: ❌', err));
+            });
+        }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 🚀 UI POLISH: Tailwind Custom Font Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Nunito', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <!-- 🚀 PHASE 4: POKI-STYLE SVG FLAG ICONS CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css">
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 7px;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none !important;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 10px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+
+        @media (hover: none) {
+            .group:hover .group-hover\:opacity-100 {
+                opacity: 0;
+            }
+
+            .group:active .group-hover\:opacity-100 {
+                opacity: 1;
+            }
+
+            .group:hover .group-hover\:-translate-y-1\.5 {
+                transform: none;
+            }
+
+            .group:hover .group-hover\:shadow-\[0_20px_40px_-15px_rgba\(0\,0\,0\,0\.5\)\] {
+                box-shadow: none;
+            }
+
+            .group:hover .group-hover\:scale-\[1\.05\] {
+                transform: none;
+            }
+
+            .group:hover .group-hover\:ring-2,
+            .group:hover .sm\:group-hover\:ring-4 {
+                box-shadow: none;
+            }
+        }
+
+        @keyframes hotPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                filter: brightness(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+                filter: brightness(1.2) drop-shadow(0 0 5px rgba(239, 68, 68, 0.5));
+            }
+        }
+
+        .animate-hot-pulse {
+            animation: hotPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes heartBurst {
+            0% {
+                transform: scale(1);
+            }
+
+            30% {
+                transform: scale(1.6) rotate(-10deg);
+                filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.9));
+            }
+
+            50% {
+                transform: scale(0.8) rotate(10deg);
+            }
+
+            70% {
+                transform: scale(1.2) rotate(-5deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0);
+                filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.5));
+            }
+        }
+
+        .animate-heart-burst {
+            animation: heartBurst 0.5s ease-out forwards;
+        }
+
+        .seo-content-wrapper h2,
+        .seo-content-wrapper h3 {
+            font-weight: 900;
+            color: #1f2937;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .dark .seo-content-wrapper h2,
+        .dark .seo-content-wrapper h3 {
+            color: #f3f4f6;
+        }
+
+        .seo-content-wrapper p {
+            margin-bottom: 1rem;
+            line-height: 1.7;
+        }
+
+        .seo-content-wrapper a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .seo-content-wrapper a:hover {
+            text-decoration: underline;
+            color: #2563eb;
+        }
+
+        .dark .seo-content-wrapper a:hover {
+            color: #60a5fa;
+        }
+
+        .seo-content-wrapper ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .seo-content-wrapper li {
+            margin-bottom: 0.25rem;
+        }
+
+        /* 🚀 PHASE 4: POKI-STYLE SVG ROUND FLAG CSS */
+        .flag-icon-round {
+            border-radius: 50%;
+            object-fit: cover;
+            width: 24px;
+            height: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 font-sans antialiased overflow-x-hidden transition-colors duration-300 flex flex-col min-h-screen">
+
+    <!-- 🚀 Accessibility: Skip to Content Link -->
+    <a href="#game-container"
+        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white font-bold px-5 py-3 rounded-lg z-[9999] shadow-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white">Skip
+        to games</a>
+
+    <div id="page-loader"
+        class="fixed inset-0 z-[9999] bg-white dark:bg-gray-900 flex items-center justify-center transition-opacity duration-500">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
+
+    <nav
+        class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-[100] transition-colors duration-300 shadow-sm dark:shadow-none relative">
+        <!-- 🚀 100% FLUID FULL-WIDTH LAYOUT -->
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 mx-auto h-16 flex items-center justify-between">
+            <div class="flex-shrink-0 cursor-pointer">
+                <a href="/" tabindex="0" aria-label="KixoGames Home"
+                    class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500 tracking-wider hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1 py-0.5">KixoGames</a>
+            </div>
+
+            <form action="/" method="GET" class="hidden md:flex flex-1 max-w-2xl mx-8 relative items-center group"
+                onsubmit="event.preventDefault(); liveSearch('desktop');">
+                <input type="text" id="search-box-desktop" name="q" value="{{ search_query }}"
+                    oninput="liveSearch('desktop')" tabindex="0" aria-label="{{ _('Search games') }}"
+                    class="w-full bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white rounded-full pl-5 pr-12 py-2.5 border border-gray-300 dark:border-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 transition-all duration-300"
+                    placeholder="{{ _('Search games...') }}">
+                <button type="button" id="clear-btn-desktop" onclick="clearSearch()" tabindex="0"
+                    aria-label="{{ _('Clear search') }}"
+                    class="absolute right-12 text-gray-400 hover:text-red-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-full p-1 {% if not search_query %}hidden{% endif %}"
+                    onkeydown="if(event.key==='Enter') this.click();">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+                <button type="button" onclick="liveSearch('desktop')" tabindex="0" aria-label="{{ _('Submit search') }}"
+                    class="absolute right-4 text-gray-400 group-focus-within:text-blue-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full p-1"
+                    onkeydown="if(event.key==='Enter') this.click();">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </button>
+            </form>
+
+            <div class="hidden md:flex items-center space-x-3 sm:space-x-4">
+                <button id="theme-toggle-desktop" tabindex="0" aria-label="{{ _('Toggle Dark Mode') }}"
+                    class="p-2.5 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-transform hover:scale-105 active:scale-95"
+                    title="{{ _('Dark Mode') }}">
+                    <svg class="w-5 h-5 hidden dark:block text-yellow-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    <svg class="w-5 h-5 block dark:hidden text-gray-600" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                        </path>
+                    </svg>
+                </button>
+
+                {% if session.get('user_logged_in') %}
+                <a href="/profile" title="{{ _('Profile') }}" tabindex="0" aria-label="{{ _('User Profile') }}"
+                    class="p-2.5 rounded-full bg-blue-100 dark:bg-gray-700 hover:bg-blue-200 dark:hover:bg-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-transform hover:scale-105 active:scale-95">
+                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </a>
+                <a href="/user_logout" title="{{ _('Logout') }}" tabindex="0" aria-label="{{ _('Logout') }}"
+                    class="p-2.5 rounded-full bg-red-100 dark:bg-gray-700 hover:bg-red-200 dark:hover:bg-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-transform hover:scale-105 active:scale-95">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                        </path>
+                    </svg>
+                </a>
+                {% else %}
+                <a href="/signup" title="{{ _('Login / Sign Up') }}" tabindex="0"
+                    aria-label="{{ _('Login or Sign Up') }}"
+                    class="p-2.5 rounded-full bg-blue-100 dark:bg-gray-700 hover:bg-blue-200 dark:hover:bg-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-transform hover:scale-105 active:scale-95">
+                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
+                        </path>
+                    </svg>
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="flex md:hidden items-center space-x-2">
+                <button id="mobile-search-toggle-btn" onclick="toggleMobileSearch()" tabindex="0"
+                    aria-label="{{ _('Open mobile search') }}"
+                    class="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full transition-transform active:scale-95">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </button>
+                <button onclick="toggleMobileMenu()" tabindex="0" aria-label="{{ _('Open mobile menu') }}"
+                    class="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full transition-transform active:scale-95">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="mobile-search-dropdown"
+            class="hidden absolute top-16 left-0 w-full bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 shadow-xl z-[90] transition-all origin-top">
+            <form action="/" method="GET" class="relative flex items-center"
+                onsubmit="event.preventDefault(); liveSearch('mobile');">
+                <input type="text" id="search-box-mobile" name="q" value="{{ search_query }}"
+                    oninput="liveSearch('mobile')" tabindex="-1" aria-label="{{ _('Search games mobile') }}"
+                    class="w-full bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white rounded-full pl-5 pr-20 py-2.5 border border-gray-300 dark:border-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 transition-colors shadow-inner text-sm"
+                    placeholder="{{ _('Search games...') }}">
+                <div class="absolute right-3 flex items-center space-x-2">
+                    <button type="button" id="clear-btn-mobile" onclick="clearSearch()" tabindex="-1"
+                        aria-label="{{ _('Clear search') }}"
+                        class="text-gray-400 hover:text-red-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-full p-1 {% if not search_query %}hidden{% endif %}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                    <button type="button" onclick="liveSearch('mobile')" tabindex="-1"
+                        aria-label="{{ _('Submit search') }}"
+                        class="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="mobile-menu-dropdown"
+            class="hidden absolute top-16 right-4 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-[90] flex-col overflow-hidden transition-all origin-top-right">
+            <button id="theme-toggle-mobile" tabindex="-1" aria-label="{{ _('Toggle dark mode') }}"
+                class="flex items-center w-full px-5 py-3.5 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold transition-colors text-sm">
+                <svg class="w-5 h-5 mr-3 hidden dark:block text-yellow-400" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
+                </svg>
+                <svg class="w-5 h-5 mr-3 block dark:hidden text-gray-600" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                    </path>
+                </svg>
+                <span id="theme-text-mobile">{{ _('Dark Mode') }}</span>
+            </button>
+            {% if session.get('user_logged_in') %}
+            <a href="/profile" tabindex="-1" aria-label="{{ _('Go to Profile') }}"
+                class="flex items-center w-full px-5 py-3.5 text-left text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700 font-bold transition-colors text-sm">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg> {{ _('Profile') }}
+            </a>
+            <a href="/user_logout" tabindex="-1" aria-label="{{ _('Logout') }}"
+                class="flex items-center w-full px-5 py-3.5 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border-t border-gray-100 dark:border-gray-700 font-bold transition-colors text-sm">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                    </path>
+                </svg> {{ _('Logout') }}
+            </a>
+            {% else %}
+            <a href="/signup" tabindex="-1" aria-label="{{ _('Login or Sign up') }}"
+                class="flex items-center w-full px-5 py-3.5 text-left text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700 font-bold transition-colors text-sm">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
+                    </path>
+                </svg> {{ _('Login / Sign Up') }}
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- 🚀 Skip to content link for accessibility -->
+    <a href="#game-container"
+        class="sr-only focus:not-sr-only focus:absolute focus:top-20 focus:left-8 bg-blue-600 text-white font-bold px-4 py-2 rounded z-[200]">Skip
+        to games</a>
+
+    <!-- 🚀 100% FLUID FULL-WIDTH LAYOUT -->
+    <div class="flex-grow w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 mx-auto py-4 sm:py-6 flex flex-col md:flex-row gap-5 sm:gap-6"
+        onclick="closeMobileMenus()">
+
+        <!-- 🚀 HYBRID SEO: Smart Fallback Logic for Icons -->
+        {% set cat_icons = { 'action': '⚔️', 'racing': '🚗', 'puzzle': '🧩', 'sport': '⚽', 'arcade': '🕹️', 'strategy':
+        '♟️', 'adventure': '🗺️', 'shooting': '🔫', 'simulation': '🏗️', 'board': '🎲' } %}
+
+        <aside class="hidden md:block w-48 flex-shrink-0 sticky top-24 h-fit">
+            <ul
+                class="space-y-1.5 border border-gray-200 dark:border-gray-700 p-2.5 rounded-2xl bg-white dark:bg-gray-800 shadow-sm transition-colors">
+                <li>
+                    <a href="{{ url_for('home') }}" id="cat-link-all" tabindex="0"
+                        aria-label="{{ _('View All Games') }}"
+                        class="w-full flex items-center p-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 {% if not current_category or current_category == 'all' %}bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-blue-400{% endif %}">
+                        🔥 {{ _('All Games') }}
+                    </a>
+                </li>
+                {% for cat in categories %}
+                <li>
+                    <a href="{{ url_for('home', category=cat) }}" id="cat-link-{{ cat|lower }}" tabindex="0"
+                        aria-label="View {{ cat }} games"
+                        class="w-full flex items-center p-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold transition-all duration-300 capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 {% if current_category == cat %}bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-blue-400{% endif %}">
+                        {{ dynamic_icons.get(cat|lower, cat_icons.get(cat|lower, '🎮')) }} <span class="ml-2">{{ cat
+                            }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+                <li class="pt-3 mt-2 border-t border-gray-100 dark:border-gray-700">
+                    <button onclick="shareWebsite()" tabindex="0" aria-label="{{ _('Share this website') }}"
+                        class="w-full flex items-center justify-center gap-2.5 p-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black transition-all duration-300 shadow-md shadow-green-500/20 hover:shadow-green-500/40 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 group text-sm md:text-base">
+                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                            <path
+                                d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
+                        </svg>
+                        <span>{{ _('Share') }}</span>
+                    </button>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- 🚀 PHASE 1: Flexbox Overflow Fix (min-w-0 added) -->
+        <main class="flex-grow flex-1 min-w-0">
+            <!-- 🚀 ADDED ID: mobile-category-bar -->
+            <div id="mobile-category-bar"
+                class="md:hidden flex space-x-2.5 overflow-x-auto pb-3 mb-4 scrollbar-hide border-b border-gray-100 dark:border-gray-800 transition-opacity duration-300">
+                <a href="{{ url_for('home') }}" id="mobile-cat-link-all" tabindex="0"
+                    class="{% if not current_category or current_category == 'all' %}bg-blue-600 text-white shadow-md shadow-blue-500/30{% else %}bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700{% endif %} px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">🔥
+                    {{ _('All') }}</a>
+                {% for cat in categories %}
+                <a href="{{ url_for('home', category=cat) }}" id="mobile-cat-link-{{ cat|lower }}" tabindex="0"
+                    class="{% if current_category == cat %}bg-blue-600 text-white shadow-md shadow-blue-500/30{% else %}bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700{% endif %} px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap capitalize transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{{
+                    dynamic_icons.get(cat|lower, cat_icons.get(cat|lower, '🎮')) }} {{ cat }}</a>
+                {% endfor %}
+            </div>
+
+            {% if session.get('user_logged_in') and recently_played and (not current_category or current_category ==
+            'all') and not search_query %}
+            <div id="continue-playing-widget"
+                class="mb-6 sm:mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800 border border-blue-100 dark:border-gray-700 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm transition-all duration-300">
+                <h3
+                    class="text-base sm:text-lg lg:text-xl font-black mb-4 sm:mb-5 flex items-center gap-2 text-gray-800 dark:text-white">
+                    🎮 {{ _('Welcome back') }}, <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 font-extrabold truncate max-w-[120px] sm:max-w-xs">{{
+                        session.get('username') }}</span>!
+                </h3>
+                <div
+                    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
+                    {% for rgame in recently_played %}
+                    <div tabindex="0" role="button" aria-label="Play {{ rgame.name }}"
+                        class="group cursor-pointer relative flex flex-col focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-{{ rgame.color }}-500 focus-visible:ring-offset-4 dark:focus-visible:ring-offset-gray-900 rounded-2xl transition-shadow {% if loop.index == 5 %}md:hidden lg:flex{% elif loop.index == 6 %}md:hidden xl:flex{% endif %}"
+                        onclick="window.location.href='/game/{{ rgame.category }}/{{ rgame.id }}/{{ rgame.name|slugify }}'"
+                        onkeydown="if(event.key==='Enter') this.click();">
+
+                        <div
+                            class="relative aspect-[1/1] rounded-xl sm:rounded-2xl bg-gray-800 shadow-sm transition-all duration-500 ease-out transform-gpu group-hover:-translate-y-1.5 group-focus:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] group-focus:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] group-hover:shadow-{{ rgame.color }}-500/30 group-focus:shadow-{{ rgame.color }}-500/30 group-hover:ring-2 sm:group-hover:ring-4 group-focus:ring-2 sm:group-focus:ring-4 ring-offset-2 sm:ring-offset-4 ring-offset-gray-50 dark:ring-offset-gray-900 ring-{{ rgame.color }}-500 overflow-hidden">
+
+                            <div class="absolute inset-0 overflow-hidden rounded-xl sm:rounded-2xl isolate"
+                                style="-webkit-mask-image: -webkit-radial-gradient(white, black);">
+                                <img src="{{ rgame.image_url }}" alt="" loading="lazy" decoding="async"
+                                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.05] group-focus:scale-[1.05] z-0">
+                                {% if rgame.preview_url %}
+                                {% if rgame.preview_url.endswith('.mp4') or rgame.preview_url.endswith('.webm') %}
+                                <video src="{{ rgame.preview_url }}" autoplay loop muted playsinline
+                                    class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500 z-10"></video>
+                                {% else %}
+                                <img src="{{ rgame.preview_url }}" alt="" loading="lazy" decoding="async"
+                                    class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500 z-10">
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mt-2 sm:mt-2.5 px-0.5">
+                            <h3
+                                class="font-bold text-gray-800 dark:text-gray-100 truncate group-hover:text-{{ rgame.color }}-600 group-focus:text-{{ rgame.color }}-600 dark:group-hover:text-{{ rgame.color }}-400 dark:group-focus:text-{{ rgame.color }}-400 transition-colors text-sm sm:text-base capitalize">
+                                {{ rgame.name }}
+                            </h3>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 🚀 PHASE 3: SAFE AD CONTAINER (Top Banner Only) -->
+            {% if site_settings and site_settings.show_ads %}
+            {% if site_settings.top_banner %}
+            <div
+                class="safe-ad-container pointer-events-auto w-full max-w-4xl mx-auto mb-5 sm:mb-6 flex justify-center overflow-hidden">
+                {{ site_settings.top_banner | safe }}
+            </div>
+            {% endif %}
+            {% endif %}
+
+            <!-- 🚀 PHASE 5: "Trending Now" Carousel (Homepage Exclusive) -->
+            {% if not current_category or current_category == 'all' %}
+            {% if not search_query and trending_games %}
+            <div id="trending-now-section" class="mb-8 sm:mb-10 relative">
+                <!-- 🚀 FIXED: Changed items-end to items-center to perfectly center title and dots -->
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <h2
+                        class="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 dark:text-white flex items-center gap-2 border-l-4 border-orange-500 pl-3 transition-all tracking-tight truncate pr-2">
+                        <span class="animate-pulse text-orange-500" aria-hidden="true">🔥</span> {{ _('Trending Now') }}
+                    </h2>
+                    <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+                        <!-- 🚀 Dots Pagination (সব ডিভাইসে দেখাবে) -->
+                        <div id="dots-trending-slider" class="flex gap-1.5 sm:gap-2 items-center" aria-hidden="true">
+                        </div>
+
+                        <!-- 🚀 Navigation Buttons (শুধু পিসিতে দেখাবে) -->
+                        <div class="hidden sm:flex gap-2">
+                            <button onclick="scrollTrending('left')" aria-label="Scroll left" tabindex="0"
+                                class="p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 shadow-sm transition-transform active:scale-95">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                            <button onclick="scrollTrending('right')" aria-label="Scroll right" tabindex="0"
+                                class="p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 shadow-sm transition-transform active:scale-95">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🚀 BULLETPROOF SAFE PADDING: Negative Margin + Positive Padding + Scroll Padding -->
+                <div id="trending-slider"
+                    class="flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-6 -mx-4 sm:-mx-6 px-4 sm:px-6 scroll-pl-4 sm:scroll-pl-6"
+                    style="scroll-behavior: smooth;">
+                    {% for details in trending_games %}
+                    <div tabindex="0" role="button" aria-label="Play {{ details.name }}"
+                        class="group cursor-pointer relative flex flex-col flex-none w-[46%] sm:w-[31%] md:w-[23%] lg:w-[18%] xl:w-[15%] snap-start focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-{{ details.color }}-500 focus-visible:ring-offset-4 dark:focus-visible:ring-offset-gray-900 rounded-2xl transition-shadow"
+                        onclick="window.location.href='/game/{{ details.category }}/{{ details.id }}/{{ details.slug }}'"
+                        onkeydown="if(event.key==='Enter') this.click();">
+
+                        <div
+                            class="absolute -top-3 -left-3 sm:-top-4 sm:-left-3.5 z-40 pointer-events-none transition-all duration-300 group-hover:opacity-0 group-focus:opacity-0 group-hover:scale-50 group-focus:scale-50">
+                            <span class="text-3xl sm:text-4xl animate-hot-pulse block" aria-hidden="true">🔥</span>
+                        </div>
+
+                        <div
+                            class="relative aspect-[1/1] rounded-xl sm:rounded-2xl bg-gray-800 shadow-sm transition-all duration-500 ease-out transform-gpu group-hover:-translate-y-1.5 group-focus:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] group-focus:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] group-hover:shadow-{{ details.color }}-500/30 group-focus:shadow-{{ details.color }}-500/30 group-hover:ring-2 group-focus:ring-2 sm:group-hover:ring-4 sm:group-focus:ring-4 ring-offset-2 sm:ring-offset-4 ring-offset-gray-50 dark:ring-offset-gray-900 ring-{{ details.color }}-500 overflow-hidden">
+                            <div class="absolute inset-0 overflow-hidden rounded-xl sm:rounded-2xl isolate"
+                                style="-webkit-mask-image: -webkit-radial-gradient(white, black);">
+                                <img src="{{ details.image_url }}" alt="Play {{ details.name }}"
+                                    onerror="this.onerror=null; this.src='https://via.placeholder.com/400x400?text=Game+Image';"
+                                    loading="lazy" decoding="async"
+                                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.05] group-focus:scale-[1.05] z-0">
+                                {% if details.preview_url %}
+                                {% if details.preview_url.endswith('.mp4') or details.preview_url.endswith('.webm') %}
+                                <video src="{{ details.preview_url }}" autoplay loop muted playsinline
+                                    class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500 z-10"></video>
+                                {% else %}
+                                <img src="{{ details.preview_url }}" alt="" loading="lazy" decoding="async"
+                                    class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500 z-10">
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mt-2 sm:mt-3 px-1 flex-1 flex flex-col justify-between">
+                            <h3
+                                class="font-bold text-gray-800 dark:text-gray-100 truncate group-hover:text-{{ details.color }}-600 group-focus:text-{{ details.color }}-600 dark:group-hover:text-{{ details.color }}-400 dark:group-focus:text-{{ details.color }}-400 transition-colors text-sm sm:text-base capitalize">
+                                {{ details.name }}</h3>
+                            <div
+                                class="mt-1 sm:mt-1.5 flex justify-between items-center text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                                <span class="uppercase tracking-wider truncate mr-1">{{ details.category }}</span>
+                                <div class="flex items-center gap-1 sm:gap-1.5 flex-shrink-0"
+                                    aria-label="{{ details.views }} views">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                        </path>
+                                    </svg>
+                                    <span>{{ details.views | format_views if details.views is number else details.views
+                                        }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 🚀 CRAZYGAMES UI: Category Sliders -->
+            {% if not search_query and category_sliders %}
+            {% for slider in category_sliders %}
+            <div class="category-slider-section mb-8 sm:mb-10 relative">
+                <!-- 🚀 FIXED: Changed items-end to items-center to perfectly center title and dots -->
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <a href="/?category={{ slider.category_name }}" tabindex="0"
+                        class="group flex items-center gap-2 truncate pr-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded">
+                        <h2
+                            class="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 dark:text-white capitalize tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            {{ slider.category_name }} {{ _('Games') }} <span
+                                class="text-gray-400 group-hover:text-blue-500 transition-colors text-lg sm:text-xl"
+                                aria-hidden="true">&gt;</span>
+                        </h2>
+                    </a>
+                    <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+                        <!-- 🚀 Dots Pagination -->
+                        <div id="dots-cat-slider-{{ loop.index }}" class="flex gap-1.5 sm:gap-2 items-center"
+                            aria-hidden="true"></div>
+
+                        <!-- 🚀 Navigation Buttons -->
+                        <div class="hidden sm:flex gap-2">
+                            <button onclick="scrollCategorySlider('cat-slider-{{ loop.index }}', 'left')"
+                                aria-label="Scroll left" tabindex="0"
+                                class="p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 shadow-sm transition-transform active:scale-95">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                            <button onclick="scrollCategorySlider('cat-slider-{{ loop.index }}', 'right')"
+                                aria-label="Scroll right" tabindex="0"
+                                class="p-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 shadow-sm transition-transform active:scale-95">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🚀 BULLETPROOF SAFE PADDING JUST LIKE TRENDING -->
+                <div id="cat-slider-{{ loop.index }}"
+                    class="flex gap-3 sm:gap-4 md:gap-6 lg:gap-7 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4 -mx-4 sm:-mx-6 px-4 sm:px-6 scroll-pl-4 sm:scroll-pl-6"
+                    style="scroll-behavior: smooth;">
+                    {% for details in slider.games %}
+                    <div tabindex="0" role="button" aria-label="Play {{ details.name }}"
+                        class="group cursor-pointer relative flex flex-col flex-none w-[46%] sm:w-[31%] md:w-[23%] lg:w-[18%] xl:w-[15%] snap-start focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-{{ details.color }}-500 focus-visible:ring-offset-4 dark:focus-visible:ring-offset-gray-900 rounded-2xl transition-shadow"
+                        onclick="window.location.href='/game/{{ details.category }}/{{ details.id }}/{{ details.slug }}'"
+                        onkeydown="if(event.key==='Enter') this.click();">
+
+                        {% if details.badge == 'new' %}
+                        <div
+                            class="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 z-40 pointer-events-none transition-opacity duration-300 group-hover:opacity-0 group-focus:opacity-0">
+                            <span
+                                class="bg-gradient-to-tr from-purple-500 to-purple-600 text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg shadow-lg shadow-purple-500/50 flex items-center gap-1 border border-white/20 border-b-black/20"
+                                aria-label="New Game">✨
+                                {{ _('New') }}</span>
+                        </div>
+                        {% elif details.badge == 'top' %}
+                        <div
+                            class="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 z-40 pointer-events-none transition-opacity duration-300 group-hover:opacity-0 group-focus:opacity-0">
+                            <span
+                                class="bg-gradient-to-tr from-yellow-400 to-yellow-500 text-gray-900 text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg shadow-lg shadow-yellow-500/50 flex items-center gap-1 border border-white/20 border-b-black/20"
+                                aria-label="Top Game">⭐
+                                {{ _('Top') }}</span>
+                        </div>
+                        {% elif details.badge == 'hot' %}
+                        <div
+                            class="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 z-40 animate-hot-pulse pointer-events-none transition-opacity duration-300 group-hover:opacity-0 group-focus:opacity-0">
+                            <span
+                                class="bg-gradient-to-tr from-orange-500 to-red-600 text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg shadow-lg shadow-red-500/50 flex items-center gap-1 border border-white/20 border-b-black/20"
+                                aria-label="Hot Game">🔥
+                                {{ _('Hot') }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div
+                            class="relative aspect-[1/1] rounded-xl sm:rounded-2xl bg-gray-800 shadow-sm transition-all duration-500 ease-out transform-gpu group-hover:-translate-y-1.5 group-focus:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] group-focus:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] group-hover:shadow-{{ details.color }}-500/30 group-focus:shadow-{{ details.color }}-500/30 group-hover:ring-2 group-focus:ring-2 sm:group-hover:ring-4 sm:group-focus:ring-4 ring-offset-2 sm:ring-offset-4 ring-offset-gray-50 dark:ring-offset-gray-900 ring-{{ details.color }}-500 overflow-hidden">
+                            <div class="absolute inset-0 overflow-hidden rounded-xl sm:rounded-2xl isolate"
+                                style="-webkit-mask-image: -webkit-radial-gradient(white, black);">
+                                <img src="{{ details.image_url }}" alt="Play {{ details.name }}"
+                                    onerror="this.onerror=null; this.src='https://via.placeholder.com/400x400?text=Game+Image';"
+                                    loading="lazy" decoding="async"
+                                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.05] group-focus:scale-[1.05] z-0">
+                                {% if details.preview_url %}
+                                {% if details.preview_url.endswith('.mp4') or details.preview_url.endswith('.webm') %}
+                                <video src="{{ details.preview_url }}" autoplay loop muted playsinline
+                                    class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500 z-10"></video>
+                                {% else %}
+                                <img src="{{ details.preview_url }}" alt="" loading="lazy" decoding="async"
+                                    class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500 z-10">
+                                {% endif %}
+                                {% endif %}
+                            </div>
+
+                            <button onclick="toggleFavorite(event, '{{ details.id }}')" tabindex="-1"
+                                class="absolute top-2 sm:top-3 right-2 sm:right-3 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 p-1.5 sm:p-2 rounded-full z-40 transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm focus:outline-none"
+                                title="Add to Favorites">
+                                <svg id="heart-slider-{{ details.id }}"
+                                    class="w-3.5 h-3.5 sm:w-4 sm:h-4 {% if details.id in user_favorites %}text-red-500 fill-red-500{% else %}text-white fill-none{% endif %} transition-colors"
+                                    stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                                    </path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="mt-2 sm:mt-3 px-1 flex-1 flex flex-col justify-between">
+                            <h3
+                                class="font-bold text-gray-800 dark:text-gray-100 text-[11px] sm:text-xs md:text-sm capitalize truncate group-hover:text-{{ details.color }}-600 group-focus:text-{{ details.color }}-600 dark:group-hover:text-{{ details.color }}-400 dark:group-focus:text-{{ details.color }}-400 transition-colors">
+                                {{ details.name }}</h3>
+                            <div
+                                class="mt-1 sm:mt-1.5 flex justify-between items-center text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                                <span class="uppercase tracking-wider truncate mr-1">{{ details.category }}</span>
+                                <div class="flex items-center gap-1 sm:gap-1.5 flex-shrink-0"
+                                    aria-label="{{ details.views }} views">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                        </path>
+                                    </svg>
+                                    <span>{{ details.views | format_views if details.views is number else details.views
+                                        }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endif %}
+
+            <!-- 🚀 CRAZYGAMES STYLE PREMIUM HEADER & RESPONSIVE TITLE FIX (ADDED hidden CLASS DYNAMICALLY FOR SEARCH AND FIXED TEXT SIZES) -->
+            <div id="premium-category-header" class="mb-6 sm:mb-8 {% if search_query %}hidden{% endif %}">
+                <div id="breadcrumb-container"
+                    class="text-xs sm:text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-widest {% if search_query or (not current_category and not current_tag) or current_category == 'all' %}hidden{% endif %}">
+                    <a href="/"
+                        class="hover:text-blue-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1">{{
+                        _('Games') }}</a>
+                    &raquo;
+                    <span id="breadcrumb-category" class="text-blue-600 dark:text-blue-400">
+                        {% if current_tag %}#{{ current_tag }}{% else %}{{ current_category }}{% endif %}
+                    </span>
+                </div>
+
+                <!-- 🚀 RESPONSIVE HEADING SIZES -->
+                <h1 id="category-title"
+                    class="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 dark:text-white capitalize tracking-tight mb-3">
+                    {% if search_query %} {{ _('Search Results for') }} "{{ search_query }}"
+                    {% elif current_tag %} {{ _('Best') }} {{ current_tag|title }} {{ _('Games') }}
+                    {% elif current_category and current_category != 'all' %} {{ category_seo.title if category_seo and
+                    current_language == 'en' else current_category ~ ' Games' }}
+                    {% else %} {{ _('All Free Games') }} {% endif %}
+                </h1>
+            </div>
+
+            <!-- 🚀 SMART DYNAMIC GRID FOR GAME CARDS -->
+            <div id="game-container"
+                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6 lg:gap-7">
+                {% if games %}
+                {% for name, details in games.items() %}
+                <div tabindex="0" role="button" aria-label="Play {{ name }}"
+                    class="group cursor-pointer relative flex flex-col focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-{{ details.color }}-500 focus-visible:ring-offset-4 dark:focus-visible:ring-offset-gray-900 rounded-2xl transition-shadow"
+                    onclick="window.location.href='/game/{{ details.category }}/{{ details.id }}/{{ name|slugify }}'"
+                    onkeydown="if(event.key==='Enter') this.click();">
+
+                    <!-- Badges -->
+                    {% if details.badge == 'new' %}
+                    <div
+                        class="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 z-40 pointer-events-none transition-opacity duration-300 group-hover:opacity-0 group-focus:opacity-0">
+                        <span
+                            class="bg-gradient-to-tr from-purple-500 to-purple-600 text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg shadow-lg shadow-purple-500/50 flex items-center gap-1 border border-white/20 border-b-black/20"
+                            aria-label="New Game">
+                            ✨ {{ _('New') }}
+                        </span>
+                    </div>
+                    {% elif details.badge == 'top' %}
+                    <div
+                        class="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 z-40 pointer-events-none transition-opacity duration-300 group-hover:opacity-0 group-focus:opacity-0">
+                        <span
+                            class="bg-gradient-to-tr from-yellow-400 to-yellow-500 text-gray-900 text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg shadow-lg shadow-yellow-500/50 flex items-center gap-1 border border-white/20 border-b-black/20"
+                            aria-label="Top Game">
+                            ⭐ {{ _('Top') }}
+                        </span>
+                    </div>
+                    {% elif details.badge == 'hot' %}
+                    <div
+                        class="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 z-40 animate-hot-pulse pointer-events-none transition-opacity duration-300 group-hover:opacity-0 group-focus:opacity-0">
+                        <span
+                            class="bg-gradient-to-tr from-orange-500 to-red-600 text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg shadow-lg shadow-red-500/50 flex items-center gap-1 border border-white/20 border-b-black/20"
+                            aria-label="Hot Game">
+                            🔥 {{ _('Hot') }}
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <div
+                        class="relative aspect-[1/1] rounded-xl sm:rounded-2xl bg-gray-800 shadow-sm transition-all duration-500 ease-out transform-gpu group-hover:-translate-y-1.5 group-focus:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] group-focus:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] group-hover:shadow-{{ details.color }}-500/30 group-focus:shadow-{{ details.color }}-500/30 group-hover:ring-2 group-focus:ring-2 sm:group-hover:ring-4 sm:group-focus:ring-4 ring-offset-2 sm:ring-offset-4 ring-offset-gray-50 dark:ring-offset-gray-900 ring-{{ details.color }}-500 overflow-hidden">
+
+                        <div class="absolute inset-0 overflow-hidden rounded-xl sm:rounded-2xl isolate"
+                            style="-webkit-mask-image: -webkit-radial-gradient(white, black);">
+                            <img src="{{ details.image_url }}" alt="Play {{ name }}"
+                                onerror="this.onerror=null; this.src='https://via.placeholder.com/400x400?text=Game+Image';"
+                                loading="lazy" decoding="async"
+                                class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.05] group-focus:scale-[1.05] z-0">
+                            {% if details.preview_url %}
+                            {% if details.preview_url.endswith('.mp4') or details.preview_url.endswith('.webm') %}
+                            <video src="{{ details.preview_url }}" autoplay loop muted playsinline
+                                class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500 z-10"></video>
+                            {% else %}
+                            <img src="{{ details.preview_url }}" alt="" loading="lazy" decoding="async"
+                                class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500 z-10">
+                            {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <button onclick="toggleFavorite(event, '{{ details.id }}')" tabindex="-1"
+                            class="absolute top-2 sm:top-3 right-2 sm:right-3 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 p-1.5 sm:p-2 rounded-full z-40 transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm focus:outline-none"
+                            title="Add to Favorites">
+                            <svg id="heart-{{ details.id }}"
+                                class="w-4 h-4 sm:w-5 sm:h-5 {% if details.id in user_favorites %}text-red-500 fill-red-500{% else %}text-white fill-none{% endif %} transition-colors"
+                                stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="mt-2 sm:mt-3 px-1 flex-1 flex flex-col justify-between">
+                        <h3
+                            class="font-bold text-gray-800 dark:text-gray-100 truncate group-hover:text-{{ details.color }}-600 group-focus:text-{{ details.color }}-600 dark:group-hover:text-{{ details.color }}-400 dark:group-focus:text-{{ details.color }}-400 transition-colors text-sm sm:text-base capitalize">
+                            {{ name }}
+                        </h3>
+                        <div
+                            class="mt-1 sm:mt-1.5 flex justify-between items-center text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                            <span class="uppercase tracking-wider truncate mr-1">{{ details.category }}</span>
+                            <div class="flex items-center gap-1 sm:gap-1.5 flex-shrink-0"
+                                aria-label="{{ details.views }} views">
+                                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                    </path>
+                                </svg>
+                                <span>{{ details.views | format_views if details.views is number else details.views
+                                    }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div
+                    class="col-span-full py-16 sm:py-20 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl border-2 border-dashed border-gray-300 dark:border-gray-700 shadow-sm">
+                    <p class="text-lg sm:text-xl font-bold">{{ _('No games found! Try searching something else.') }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 🚀 SMART SKELETON LOADER GRID -->
+            <div id="skeleton-loader" aria-hidden="true"
+                class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6 lg:gap-7 mt-5 sm:mt-6">
+                {% for _ in range(60) %}
+                <div class="animate-pulse flex flex-col gap-2 sm:gap-3 w-full">
+                    <div class="bg-gray-200 dark:bg-gray-800 rounded-xl sm:rounded-2xl aspect-[1/1] w-full shadow-sm">
+                    </div>
+                    <div class="h-3 sm:h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4 mx-1"></div>
+                    <div class="h-2.5 sm:h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/2 mx-1"></div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 🚀 HYBRID SEO & PAGINATION LOGIC -->
+            {% if not current_category or current_category == 'all' %}
+            <div id="pagination-bar"
+                class="mt-8 sm:mt-12 flex justify-center items-center space-x-2 {% if not games or not pagination.has_next %}hidden{% endif %}">
+                <p class="text-gray-400 dark:text-gray-500 text-xs sm:text-sm font-semibold tracking-wide">{{ _('Scroll
+                    down to load more games...') }}</p>
+            </div>
+            {% else %}
+            {% if pagination.pages > 1 %}
+            <div id="traditional-pagination" class="mt-10 sm:mt-14 flex justify-center items-center">
+                <div
+                    class="inline-flex bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-200 dark:border-gray-700 p-1.5 gap-1">
+                    {% if pagination.has_prev %}
+                    <a href="{{ url_for('home', category=current_category, page=pagination.prev_num) }}" tabindex="0"
+                        class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">&laquo;
+                        {{ _('Prev') }}</a>
+                    {% endif %}
+
+                    {% for p in pagination.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
+                    {% if p %}
+                    {% if p == pagination.page %}
+                    <span
+                        class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-black text-white bg-blue-600 rounded-full shadow-md"
+                        aria-current="page">{{
+                        p }}</span>
+                    {% else %}
+                    <a href="{{ url_for('home', category=current_category, page=p) }}" tabindex="0"
+                        class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{{
+                        p }}</a>
+                    {% endif %}
+                    {% else %}
+                    <span class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-gray-400">...</span>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                    <a href="{{ url_for('home', category=current_category, page=pagination.next_num) }}" tabindex="0"
+                        class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{{
+                        _('Next') }}
+                        &raquo;</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 🚀 RESTORED SEO CONTENT TO BOTTOM (Below Games & Pagination) -->
+            {% if category_seo and not current_tag %}
+            <div id="category-seo-container"
+                class="mt-12 sm:mt-16 bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden transition-colors duration-300 {% if search_query %}hidden{% endif %}">
+                <div
+                    class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none">
+                </div>
+                <div class="seo-content-wrapper relative z-10">
+                    <!-- 🚀 PHASE 3.1: Only render localized content if available, else original -->
+                    {{ category_seo.content | safe }}
+                </div>
+            </div>
+            {% endif %}
+
+            {% endif %}
+
+        </main>
+    </div>
+
+    <!-- 🚀 100% FLUID FULL-WIDTH LAYOUT -->
+    <footer
+        class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-10 sm:py-12 mt-8 sm:mt-12 transition-colors duration-300 relative z-20">
+        <div
+            class="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 mx-auto flex flex-col md:flex-row justify-between items-center md:items-start gap-6 sm:gap-8 text-center md:text-left">
+            <div class="flex-1 max-w-sm">
+                <a href="/" tabindex="0"
+                    class="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500 tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1 py-0.5">KixoGames</a>
+                <p class="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{{ _('Play thousands of free online games directly in your browser. All your favorite categories like action, puzzle, racing, and arcade are here.') }}</p>
+
+                <!-- 🚀 PHASE 4: Poki-Style Language Selector Button -->
+                <div class="mt-6 inline-block">
+                    <button onclick="openLanguageModal()"
+                        class="flex items-center gap-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2 hover:bg-white dark:hover:bg-gray-700 transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 group">
+                        {% if current_language in available_languages %}
+                        <span
+                            class="flag-icon flag-icon-{{ available_languages[current_language]['flag'] }} flag-icon-round shadow-sm"></span>
+                        <span class="font-bold text-blue-600 dark:text-blue-400 text-sm tracking-wide">{{
+                            available_languages[current_language]['native'] }}</span>
+                        {% else %}
+                        <span class="flag-icon flag-icon-us flag-icon-round shadow-sm"></span>
+                        <span class="font-bold text-blue-600 dark:text-blue-400 text-sm tracking-wide">English</span>
+                        {% endif %}
+                        <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 flex flex-col items-center justify-center md:pt-6 mt-6 md:mt-0">
+                <p class="text-xs sm:text-sm font-medium text-gray-400 dark:text-gray-500 leading-relaxed text-center">
+                    &copy; 2026 KixoGames. Your number one place for free games.<br>All rights reserved.</p>
+            </div>
+            <div class="flex-1 flex justify-center md:justify-end mt-6 md:mt-0">
+                <div class="text-center md:text-right">
+                    <h4
+                        class="font-bold text-gray-800 dark:text-white uppercase tracking-wider mb-3 sm:mb-4 text-xs sm:text-sm">
+                        {{ _('Important Pages') }}</h4>
+                    <ul
+                        class="flex flex-col space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                        {% for page in footer_pages %}
+                        <li><a href="{{ url_for('legal_page', title_slug=page.title|replace(' ', '-')) }}" tabindex="0"
+                                class="hover:text-blue-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1">{{
+                                page.title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 🚀 PHASE 1: Smart PWA Install Prompt (Premium UI) -->
+    <div id="smart-pwa-popup" aria-hidden="true"
+        class="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] max-w-sm bg-gray-900/95 backdrop-blur-xl border border-gray-700 rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] z-[10001] flex flex-col p-5 translate-y-[150%] transition-transform duration-500">
+        <div class="flex items-start gap-4">
+            <img src="/static/icon-192.png" alt="KixoGames Icon"
+                onerror="this.src='https://via.placeholder.com/192/3b82f6/fff?text=GZ'"
+                class="w-14 h-14 rounded-xl shadow-md border border-gray-700">
+            <div class="flex-1">
+                <h4 class="text-white font-black text-lg leading-tight mb-1">{{ _('Install KixoGames') }}</h4>
+                <p class="text-gray-400 text-xs font-medium mb-3">{{ _('Add to Home Screen for 1-Click Fullscreen Gaming
+                    & Zero Buffering!') }}</p>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-2">
+            <button onclick="dismissPWA()" tabindex="0"
+                class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2.5 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500">{{
+                _('Not Now') }}</button>
+            <button id="pwa-install-btn" tabindex="0"
+                class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm font-bold py-2.5 rounded-xl transition-colors shadow-lg shadow-blue-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{{
+                _('Install App') }}</button>
+        </div>
+    </div>
+
+    <!-- 🚀 ENTERPRISE COPPA & GDPR COOKIE CONSENT -->
+    <div id="cookie-banner" aria-label="Cookie Consent"
+        class="fixed bottom-0 left-0 w-full bg-gray-900/95 backdrop-blur-lg border-t border-gray-800 text-white p-4 sm:p-5 shadow-2xl z-[9998] flex flex-col sm:flex-row justify-between items-center transform translate-y-full transition-transform duration-500">
+        <p
+            class="text-xs sm:text-sm text-gray-300 mb-4 sm:mb-0 text-center sm:text-left font-medium leading-relaxed max-w-5xl">
+            🛡️ <strong class="text-white">{{ _('COPPA & GDPR Notice:') }}</strong> We value your privacy. By playing on
+            KixoGames,
+            you confirm you are 13 years of age or older, or have parental consent. We use non-intrusive cookies to save
+            your progress and deliver a personalized experience. Read our <a href="/page/Privacy-Policy" tabindex="0"
+                class="text-blue-400 hover:text-blue-300 underline font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1">Privacy
+                Policy</a> to
+            learn more.
+        </p>
+        <div class="flex gap-3">
+            <button onclick="acceptCookies()" tabindex="0"
+                class="bg-blue-600 hover:bg-blue-500 px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95 whitespace-nowrap shadow-lg shadow-blue-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{{
+                _('Accept & Play') }}</button>
+        </div>
+    </div>
+
+    <!-- 🚀 PHASE 4: Poki-Style Language Grid Modal -->
+    <div id="language-modal"
+        class="fixed inset-0 z-[10005] bg-black/60 hidden items-center justify-center backdrop-blur-sm transition-opacity duration-300 opacity-0 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-5xl shadow-2xl mx-auto transform scale-95 transition-transform duration-300 flex flex-col overflow-hidden max-h-[90vh]"
+            id="language-modal-content">
+
+            <div
+                class="flex justify-between items-center px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 sticky top-0 z-10">
+                <h3 class="text-lg sm:text-xl font-black text-gray-900 dark:text-white">{{ _('Select your language') }}
+                </h3>
+                <button onclick="closeLanguageModal()"
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors focus:outline-none p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scrollbar">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                    {% if available_languages %}
+                    {% for code, details in available_languages.items() %}
+                    <button onclick="switchLanguage('{{ code }}')"
+                        class="flex items-center gap-3 p-3 rounded-xl border border-transparent hover:bg-blue-50 dark:hover:bg-gray-700 transition-all text-left group focus:outline-none focus:ring-2 focus:ring-blue-500 {% if current_language == code %}bg-blue-50/50 dark:bg-gray-700/50 ring-1 ring-blue-200 dark:ring-gray-600{% endif %}">
+                        <span
+                            class="flag-icon flag-icon-{{ details.flag }} flag-icon-round shadow-sm flex-shrink-0"></span>
+                        <span class="font-bold text-blue-600 dark:text-blue-400 text-sm truncate w-full">{{
+                            details.native }}</span>
+                    </button>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const originalCategory = "{{ current_category or 'all' }}".toLowerCase();
+        const currentTag = "{{ current_tag or '' }}";
+
+        // 🚀 PHASE 3 & 4: Language Modal & i18n Routing Logic
+        function openLanguageModal() {
+            const modal = document.getElementById('language-modal');
+            const content = document.getElementById('language-modal-content');
+            if (modal && content) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                // Prevent background scrolling
+                document.body.style.overflow = 'hidden';
+                requestAnimationFrame(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                });
+            }
+        }
+
+        function closeLanguageModal() {
+            const modal = document.getElementById('language-modal');
+            const content = document.getElementById('language-modal-content');
+            if (modal && content) {
+                modal.classList.add('opacity-0');
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+                // Restore background scrolling
+                document.body.style.overflow = '';
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 300);
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('language-modal')?.addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeLanguageModal();
+            }
+        });
+
+        function switchLanguage(langCode) {
+            document.cookie = "lang=" + langCode + "; path=/; max-age=31536000";
+            let currentPath = window.location.pathname;
+
+            // Generate regex dynamically based on available languages
+            const supportedLangs = [{% for code in available_languages.keys() %} '/{{ code }}', {% endfor %}];
+        let cleanPath = currentPath;
+
+        for (let prefix of supportedLangs) {
+            if (currentPath.startsWith(prefix + '/')) {
+                cleanPath = currentPath.substring(prefix.length);
+                break;
+            } else if (currentPath === prefix) {
+                cleanPath = '/';
+                break;
+            }
+        }
+
+        let newUrl = cleanPath;
+        if (langCode !== 'en') {
+            newUrl = '/' + langCode + (cleanPath === '/' ? '' : cleanPath);
+        }
+
+        window.location.href = newUrl + window.location.search;
+        }
+
+        // 🚀 PHASE 5: Carousel Scroll Logic
+        function scrollTrending(direction) {
+            const slider = document.getElementById('trending-slider');
+            if (!slider) return;
+            const scrollAmount = slider.clientWidth > 600 ? 600 : slider.clientWidth - 50;
+            if (direction === 'left') {
+                slider.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            } else {
+                slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+        }
+
+        // 🚀 NEW: Category Slider Scroll Logic
+        function scrollCategorySlider(sliderId, direction) {
+            const slider = document.getElementById(sliderId);
+            if (!slider) return;
+            const scrollAmount = slider.clientWidth > 600 ? 600 : slider.clientWidth - 50;
+            if (direction === 'left') {
+                slider.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            } else {
+                slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+        }
+
+        // 🚀 NEW: Advanced Dynamic Dot Pagination Logic
+        function initSliderDots(sliderId, dotsContainerId) {
+            const slider = document.getElementById(sliderId);
+            const dotsContainer = document.getElementById(dotsContainerId);
+            if (!slider || !dotsContainer) return;
+
+            function updateDots() {
+                const maxScrollLeft = slider.scrollWidth - slider.clientWidth;
+                if (maxScrollLeft <= 0) {
+                    dotsContainer.innerHTML = ''; // গেম কম থাকলে ডট হাইড করবে
+                    return;
+                }
+
+                let numDots = Math.ceil(slider.scrollWidth / slider.clientWidth);
+                if (numDots > 6) numDots = 6; // UI সুন্দর রাখার জন্য সর্বোচ্চ ৬টা ডট
+
+                let currentScroll = slider.scrollLeft;
+                let scrollPercentage = currentScroll / maxScrollLeft;
+                let activeIndex = Math.round(scrollPercentage * (numDots - 1));
+
+                if (activeIndex < 0) activeIndex = 0;
+                if (activeIndex >= numDots) activeIndex = numDots - 1;
+
+                let dotsHtml = '';
+                for (let i = 0; i < numDots; i++) {
+                    const isActive = i === activeIndex;
+                    // Active হলে সুন্দর Pill Shape হবে, Inactive হলে গোল ডট
+                    const activeClass = isActive ? "w-4 sm:w-6 bg-blue-500 dark:bg-blue-400 shadow-md shadow-blue-500/30" : "w-1.5 sm:w-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500";
+                    dotsHtml += `<div class="h-1.5 sm:h-2 rounded-full transition-all duration-300 cursor-pointer ${activeClass}" onclick="scrollToDot('${sliderId}', ${i}, ${numDots})"></div>`;
+                }
+                dotsContainer.innerHTML = dotsHtml;
+            }
+
+            setTimeout(updateDots, 100); // Initial Render
+            slider.addEventListener('scroll', () => window.requestAnimationFrame(updateDots), { passive: true });
+            window.addEventListener('resize', () => window.requestAnimationFrame(updateDots));
+        }
+
+        function scrollToDot(sliderId, dotIndex, totalDots) {
+            const slider = document.getElementById(sliderId);
+            if (!slider) return;
+            const maxScrollLeft = slider.scrollWidth - slider.clientWidth;
+            const targetScroll = (maxScrollLeft / (totalDots - 1)) * dotIndex;
+            slider.scrollTo({ left: targetScroll, behavior: 'smooth' });
+        }
+
+        function formatViewsJS(num) {
+            if (num >= 1000000000000) return (num / 1000000000000).toFixed(1).replace('.0', '') + 'T';
+            if (num >= 1000000000) return (num / 1000000000).toFixed(1).replace('.0', '') + 'B';
+            if (num >= 1000000) return (num / 1000000).toFixed(1).replace('.0', '') + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1).replace('.0', '') + 'K';
+            return num;
+        }
+
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            const bgColor = type === 'success' ? 'bg-green-600' : (type === 'error' ? 'bg-red-600' : 'bg-blue-600');
+            const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+
+            toast.className = `flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl shadow-2xl shadow-${type === 'success' ? 'green' : 'red'}-600/20 text-white font-bold text-xs sm:text-sm transform transition-all duration-300 translate-y-10 opacity-0 ${bgColor} backdrop-blur-md z-[10000]`;
+            toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+
+            toastContainer.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('page-loader');
+            if (loader) {
+                loader.classList.add('opacity-0');
+                setTimeout(() => { loader.style.display = 'none'; }, 500);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('cookiesAccepted')) {
+                setTimeout(() => document.getElementById('cookie-banner').classList.remove('translate-y-full'), 1000);
+            }
+            updateThemeText();
+
+            const paginationBar = document.getElementById('pagination-bar');
+            if (paginationBar && (originalCategory === 'all' || originalCategory === '') && currentTag === '') {
+                paginationBar.classList.remove('hidden');
+            }
+
+            // 🚀 Initialize Slider Dots 
+            initSliderDots('trending-slider', 'dots-trending-slider');
+            document.querySelectorAll('[id^="cat-slider-"]').forEach(slider => {
+                const sliderId = slider.id;
+                const dotsId = 'dots-' + sliderId;
+                initSliderDots(sliderId, dotsId);
+            });
+
+            // 🚀 LIVE SEARCH BAR EVENT LISTENER
+            const searchBoxDesk = document.getElementById('search-box-desktop');
+            if (searchBoxDesk) {
+                searchBoxDesk.addEventListener('input', () => liveSearch('desktop'));
+            }
+            const searchBoxMob = document.getElementById('search-box-mobile');
+            if (searchBoxMob) {
+                searchBoxMob.addEventListener('input', () => liveSearch('mobile'));
+            }
+        });
+
+        function acceptCookies() {
+            localStorage.setItem('cookiesAccepted', 'true');
+            const banner = document.getElementById('cookie-banner');
+            if (banner) banner.classList.add('translate-y-full');
+        }
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            updateThemeText();
+        }
+        document.getElementById('theme-toggle-desktop').addEventListener('click', toggleTheme);
+        document.getElementById('theme-toggle-mobile').addEventListener('click', toggleTheme);
+
+        function updateThemeText() {
+            let isDark = document.documentElement.classList.contains('dark');
+            let themeText = isDark ? 'Light Mode' : 'Dark Mode';
+            let themeTextMobile = document.getElementById('theme-text-mobile');
+            if (themeTextMobile) themeTextMobile.innerText = themeText;
+            let themeToggleDesktop = document.getElementById('theme-toggle-desktop');
+            if (themeToggleDesktop) themeToggleDesktop.title = themeText;
+        }
+
+        function toggleMobileSearch() {
+            let searchMenu = document.getElementById('mobile-search-dropdown');
+            let profileMenu = document.getElementById('mobile-menu-dropdown');
+            let toggleBtn = document.getElementById('mobile-search-toggle-btn');
+            if (!profileMenu.classList.contains('hidden')) profileMenu.classList.add('hidden');
+            searchMenu.classList.toggle('hidden');
+            if (!searchMenu.classList.contains('hidden')) toggleBtn.classList.add('hidden');
+            // Focus on search box when opened
+            if (!searchMenu.classList.contains('hidden')) {
+                setTimeout(() => document.getElementById('search-box-mobile').focus(), 100);
+            }
+        }
+
+        function toggleMobileMenu() {
+            let profileMenu = document.getElementById('mobile-menu-dropdown');
+            let searchMenu = document.getElementById('mobile-search-dropdown');
+            let toggleBtn = document.getElementById('mobile-search-toggle-btn');
+            if (!searchMenu.classList.contains('hidden')) {
+                searchMenu.classList.add('hidden');
+                toggleBtn.classList.remove('hidden');
+            }
+            profileMenu.classList.toggle('hidden');
+        }
+
+        function closeMobileMenus() {
+            let searchMenu = document.getElementById('mobile-search-dropdown');
+            let toggleBtn = document.getElementById('mobile-search-toggle-btn');
+            if (searchMenu && !searchMenu.classList.contains('hidden')) {
+                searchMenu.classList.add('hidden');
+                if (toggleBtn) toggleBtn.classList.remove('hidden');
+            }
+            let profileMenu = document.getElementById('mobile-menu-dropdown');
+            if (profileMenu) profileMenu.classList.add('hidden');
+        }
+
+        function slugify(text) {
+            return text.toString().toLowerCase().trim().replace(/[\s\W-]+/g, '-').replace(/^-+|-+$/g, '');
+        }
+
+        function toggleFavorite(event, gameId) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            const heartIcons = [
+                document.getElementById(`heart-${gameId}`),
+                document.getElementById(`heart-slider-${gameId}`)
+            ];
+
+            heartIcons.forEach(heartIcon => {
+                if (heartIcon) {
+                    heartIcon.classList.remove('animate-heart-burst');
+                    void heartIcon.offsetWidth;
+                    heartIcon.classList.add('animate-heart-burst');
+                }
+            });
+
+            fetch(`/toggle_favorite/${gameId}`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken }
+            }).then(res => {
+                if (res.status === 401) { window.location.href = "/signup"; return null; }
+                if (res.status === 400) { showToast('Session expired. Please refresh the page.', 'error'); return null; }
+                if (!res.ok) { showToast('Something went wrong. Please try again.', 'error'); return null; }
+                return res.json();
+            }).then(data => {
+                if (data) {
+                    heartIcons.forEach(heartIcon => {
+                        if (heartIcon) {
+                            if (data.status === 'added') {
+                                heartIcon.classList.add('text-red-500', 'fill-red-500');
+                                heartIcon.classList.remove('text-white', 'fill-none');
+                            } else {
+                                heartIcon.classList.remove('text-red-500', 'fill-red-500');
+                                heartIcon.classList.add('text-white', 'fill-none');
+                            }
+                        }
+                    });
+
+                    if (data.status === 'added') {
+                        showToast('Added to favorites! ❤️', 'success');
+                    } else {
+                        showToast('Removed from favorites 💔', 'error');
+                    }
+                }
+            }).catch(err => {
+                showToast('Network error. Please check your connection.', 'error');
+            });
+        }
+
+        function updateCategoryHighlight(targetCat) {
+            const cleanCat = targetCat.toLowerCase();
+
+            document.querySelectorAll('aside ul li a').forEach(link => {
+                link.classList.remove('bg-blue-50', 'dark:bg-gray-700', 'text-blue-600', 'dark:text-blue-400');
+                link.classList.add('text-gray-700', 'dark:text-gray-300');
+            });
+            const activeDesktop = document.getElementById(`cat-link-${cleanCat}`);
+            if (activeDesktop) {
+                activeDesktop.classList.remove('text-gray-700', 'dark:text-gray-300');
+                activeDesktop.classList.add('bg-blue-50', 'dark:bg-gray-700', 'text-blue-600', 'dark:text-blue-400');
+            }
+
+            document.querySelectorAll('.md\\:hidden.flex.space-x-2\\.5 a').forEach(link => {
+                link.className = "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500";
+            });
+            const activeMobile = document.getElementById(`mobile-cat-link-${cleanCat}`);
+            if (activeMobile) {
+                activeMobile.className = "bg-blue-600 text-white shadow-md shadow-blue-500/30 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500";
+            }
+        }
+
+        function appendGamesToContainer(games) {
+            let container = document.getElementById('game-container');
+            let htmlString = '';
+
+            games.forEach(game => {
+                let heartClass = game.is_favorite ? 'text-red-500 fill-red-500' : 'text-white fill-none';
+
+                let formattedViews = formatViewsJS(game.views);
+                let badgeHTML = '';
+
+                if (game.badge === 'new') {
+                    badgeHTML = `
+                    <div class="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 z-40 pointer-events-none transition-opacity duration-300 group-hover:opacity-0 group-focus:opacity-0">
+                        <span class="bg-gradient-to-tr from-purple-500 to-purple-600 text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg shadow-lg shadow-purple-500/50 flex items-center gap-1 border border-white/20 border-b-black/20" aria-label="New Game">
+                            ✨ New
+                        </span>
+                    </div>`;
+                } else if (game.badge === 'top') {
+                    badgeHTML = `
+                    <div class="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 z-40 pointer-events-none transition-opacity duration-300 group-hover:opacity-0 group-focus:opacity-0">
+                        <span class="bg-gradient-to-tr from-yellow-400 to-yellow-500 text-gray-900 text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg shadow-lg shadow-yellow-500/50 flex items-center gap-1 border border-white/20 border-b-black/20" aria-label="Top Game">
+                            ⭐ Top
+                        </span>
+                    </div>`;
+                } else if (game.badge === 'hot') {
+                    badgeHTML = `
+                    <div class="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 z-40 animate-hot-pulse pointer-events-none transition-opacity duration-300 group-hover:opacity-0 group-focus:opacity-0">
+                        <span class="bg-gradient-to-tr from-orange-500 to-red-600 text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg shadow-lg shadow-red-500/50 flex items-center gap-1 border border-white/20 border-b-black/20" aria-label="Hot Game">
+                            🔥 Hot
+                        </span>
+                    </div>`;
+                }
+
+                let previewHTML = '';
+                if (game.preview_url) {
+                    if (game.preview_url.endsWith('.mp4') || game.preview_url.endsWith('.webm')) {
+                        previewHTML = `<video src="${game.preview_url}" autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500 z-10"></video>`;
+                    } else {
+                        previewHTML = `<img src="${game.preview_url}" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500 z-10">`;
+                    }
+                }
+
+                // 🚀 FIXED: Inner HTML identically matches the original code backup structure to prevent double rings
+                htmlString += `
+                    <div tabindex="0" role="button" aria-label="Play ${game.name}" class="group cursor-pointer relative flex flex-col opacity-0 translate-y-4 animate-fade-in-up focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-${game.color}-500 focus-visible:ring-offset-4 dark:focus-visible:ring-offset-gray-900 rounded-2xl transition-shadow" onclick="window.location.href='/game/${game.category}/${game.id}/${slugify(game.name)}'" onkeydown="if(event.key==='Enter') this.click();">
+                        
+                        ${badgeHTML}
+
+                        <div class="relative aspect-[1/1] rounded-xl sm:rounded-2xl bg-gray-800 shadow-sm transition-all duration-500 ease-out transform-gpu group-hover:-translate-y-1.5 group-focus:-translate-y-1.5 group-hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] group-focus:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] group-hover:shadow-${game.color}-500/30 group-focus:shadow-${game.color}-500/30 group-hover:ring-2 group-focus:ring-2 sm:group-hover:ring-4 sm:group-focus:ring-4 ring-offset-2 sm:ring-offset-4 ring-offset-gray-50 dark:ring-offset-gray-900 ring-${game.color}-500 overflow-hidden">
+                            
+                            <div class="absolute inset-0 overflow-hidden rounded-xl sm:rounded-2xl isolate" style="-webkit-mask-image: -webkit-radial-gradient(white, black);">
+                                <img src="${game.image_url}" alt="Play ${game.name} free online" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x400?text=Game+Image';" loading="lazy" decoding="async" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.05] group-focus:scale-[1.05] z-0">
+                                ${previewHTML}
+                            </div>
+
+                            <button tabindex="-1" onclick="toggleFavorite(event, '${game.id}')" class="absolute top-2 sm:top-3 right-2 sm:right-3 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 p-1.5 sm:p-2 rounded-full z-40 transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm focus:outline-none" title="Add to Favorites">
+                                <svg id="heart-${game.id}" class="w-3.5 h-3.5 sm:w-4 sm:h-4 ${heartClass} transition-colors" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            </button>
+                        </div>
+                        
+                        <div class="mt-2 sm:mt-3 px-1 flex-1 flex flex-col justify-between">
+                            <h3 class="font-bold text-gray-800 dark:text-gray-100 text-[11px] sm:text-xs md:text-sm capitalize truncate group-hover:text-${game.color}-600 group-focus:text-${game.color}-600 dark:group-hover:text-${game.color}-400 dark:group-focus:text-${game.color}-400 transition-colors">${game.name}</h3>
+                            <div class="mt-1 sm:mt-1.5 flex justify-between items-center text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-semibold">
+                                <span class="uppercase tracking-wider truncate mr-1">${game.category}</span>
+                                <div class="flex items-center gap-1 sm:gap-1.5 flex-shrink-0" aria-label="${formattedViews} views">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    <span>${formattedViews}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.insertAdjacentHTML('beforeend', htmlString);
+
+            setTimeout(() => {
+                document.querySelectorAll('.animate-fade-in-up').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 50);
+        }
+
+        let currentPage = 1;
+        let isFetching = false;
+        let hasMoreGames = "{{ 'true' if pagination.has_next else 'false' }}" === "true";
+
+        let searchTimeout = null;
+        let activeFetchQuery = null;
+
+        function liveSearch(source) {
+            let query = source === 'desktop' ? document.getElementById('search-box-desktop').value : document.getElementById('search-box-mobile').value;
+            if (source === 'desktop') {
+                if (document.getElementById('search-box-mobile')) document.getElementById('search-box-mobile').value = query;
+            } else {
+                if (document.getElementById('search-box-desktop')) document.getElementById('search-box-desktop').value = query;
+            }
+
+            let clearBtnDesk = document.getElementById('clear-btn-desktop');
+            let clearBtnMob = document.getElementById('clear-btn-mobile');
+            let continueWidget = document.getElementById('continue-playing-widget');
+            let trendingWidget = document.getElementById('trending-now-section');
+            let breadcrumb = document.getElementById('breadcrumb-container');
+            let seoDesc = document.getElementById('category-seo-container');
+            let categoryTitle = document.getElementById('category-title');
+            let mobileCatBar = document.getElementById('mobile-category-bar');
+            let premiumHeader = document.getElementById('premium-category-header');
+
+            let categorySliders = document.querySelectorAll('.category-slider-section');
+
+            if (query.length > 0) {
+                if (clearBtnDesk) clearBtnDesk.classList.remove('hidden');
+                if (clearBtnMob) clearBtnMob.classList.remove('hidden');
+                if (continueWidget) continueWidget.classList.add('hidden');
+                if (trendingWidget) trendingWidget.classList.add('hidden');
+                if (breadcrumb) breadcrumb.classList.add('hidden');
+                if (seoDesc) seoDesc.classList.add('hidden');
+                if (mobileCatBar) mobileCatBar.classList.add('hidden');
+                if (premiumHeader) premiumHeader.classList.add('hidden'); // 🚀 UI FIX: Hide title during search
+
+                categorySliders.forEach(el => el.classList.add('hidden'));
+
+                updateCategoryHighlight('all');
+            } else {
+                if (clearBtnDesk) clearBtnDesk.classList.add('hidden');
+                if (clearBtnMob) clearBtnMob.classList.add('hidden');
+                if (continueWidget) continueWidget.classList.remove('hidden');
+                if (trendingWidget) trendingWidget.classList.remove('hidden');
+
+                if (breadcrumb && originalCategory !== 'all' && originalCategory !== '' && currentTag === '') {
+                    breadcrumb.classList.remove('hidden');
+                }
+                if (seoDesc && currentTag === '') seoDesc.classList.remove('hidden');
+                if (mobileCatBar) mobileCatBar.classList.remove('hidden');
+
+                if (premiumHeader) {
+                    if (originalCategory === 'all' && currentTag === '') {
+                        premiumHeader.classList.add('hidden');
+                    } else {
+                        premiumHeader.classList.remove('hidden');
+                    }
+                }
+
+                if (currentTag === '') categorySliders.forEach(el => el.classList.remove('hidden'));
+
+                closeMobileMenus();
+                if (currentTag === '') updateCategoryHighlight(originalCategory);
+            }
+
+            activeFetchQuery = query;
+
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+
+            isFetching = true;
+
+            searchTimeout = setTimeout(() => {
+                let fetchQuery = query;
+                let currentCategory = query ? 'all' : originalCategory;
+
+                currentPage = 1;
+                hasMoreGames = true;
+
+                document.getElementById('skeleton-loader').classList.remove('hidden');
+
+                let tradPagination = document.getElementById('traditional-pagination');
+                if (tradPagination) tradPagination.style.display = query.trim() !== '' ? 'none' : 'flex';
+
+                let fetchUrl = `/api/games?page=${currentPage}&q=${encodeURIComponent(query)}&category=${currentCategory}`;
+
+                fetch(fetchUrl)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (fetchQuery !== activeFetchQuery) return;
+
+                        document.getElementById('skeleton-loader').classList.add('hidden');
+                        document.getElementById('game-container').innerHTML = '';
+
+                        if (data.games && data.games.length > 0) {
+                            if (query) {
+                                if (categoryTitle) categoryTitle.innerHTML = `Search Results for "${query}"`;
+                            } else {
+                                let originalTitleText = 'All Free Games';
+                                // 🚀 JAVASCRIPT BUG FIX: Safe single-line string rendering
+                                const seoTitleStr = {{ (category_seo.title if category_seo else '') | tojson | safe
+            }};
+
+        if (currentTag !== "") {
+            let capTag = currentTag.replace(/\b\w/g, c => c.toUpperCase());
+            originalTitleText = `Best ${capTag} Games`;
+        } else if (seoTitleStr && seoTitleStr !== 'null') {
+            originalTitleText = seoTitleStr;
+        } else if (originalCategory !== 'all' && originalCategory !== '') {
+            let capCat = originalCategory.charAt(0).toUpperCase() + originalCategory.slice(1);
+            originalTitleText = `${capCat} Games`;
+        }
+        if (categoryTitle) categoryTitle.innerHTML = originalTitleText;
+                            }
+        appendGamesToContainer(data.games);
+        hasMoreGames = data.has_next;
+                        } else {
+            if (categoryTitle) categoryTitle.innerHTML = "No Results Found";
+            document.getElementById('game-container').innerHTML = `<div class="col-span-full py-16 sm:py-20 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl border-2 border-dashed border-gray-300 dark:border-gray-700 shadow-sm"><p class="text-lg sm:text-xl font-bold">No games found for "${query}"!</p></div>`;
+            hasMoreGames = false;
+        }
+
+        let pagBar = document.getElementById('pagination-bar');
+        if (pagBar) {
+            if (query.trim() === '' && ((originalCategory !== 'all' && originalCategory !== '') || currentTag !== '')) {
+                pagBar.classList.add('hidden');
+            } else {
+                if (hasMoreGames) pagBar.classList.remove('hidden');
+                else pagBar.classList.add('hidden');
+            }
+        }
+
+        const url = new URL(window.location);
+        if (query === '') {
+            url.searchParams.delete('q');
+            if (currentTag !== "") {
+                document.title = `Play Free ${currentTag.replace(/\b\w/g, c => c.toUpperCase())} Games Online - KixoGames`;
+            } else {
+                if (originalCategory === 'all') {
+                    url.searchParams.delete('category');
+                } else {
+                    url.searchParams.set('category', originalCategory);
+                }
+                document.title = originalCategory === 'all' ? "KixoGames - Free Online Games" : `Play Free ${originalCategory.charAt(0).toUpperCase() + originalCategory.slice(1)} Games Online - KixoGames`;
+            }
+            window.history.pushState({}, '', url);
+        } else {
+            url.searchParams.set('q', query);
+            url.searchParams.delete('category');
+            window.history.pushState({}, '', url);
+            document.title = `Search Results for "${query}" - KixoGames`;
+        }
+
+        isFetching = false;
+                    })
+                    .catch (err => {
+            console.error("Search Fetch Error:", err);
+            if (fetchQuery !== activeFetchQuery) return;
+            document.getElementById('skeleton-loader').classList.add('hidden');
+            isFetching = false;
+        });
+            }, 300);
+        }
+
+        function clearSearch() {
+            document.getElementById('search-box-desktop').value = '';
+            document.getElementById('search-box-mobile').value = '';
+            liveSearch('desktop');
+        }
+
+        function shareWebsite() {
+            let shareUrl = window.location.origin + window.location.pathname + '?utm_source=share_btn&utm_medium=social';
+
+            if (navigator.share) {
+                navigator.share({ title: 'KixoGames - Play Free Online Games', text: 'Check out KixoGames, the best place to play free browser games!', url: shareUrl })
+                    .then(() => showToast('Shared successfully!', 'success'))
+                    .catch(error => console.log('Error sharing', error));
+            } else {
+                navigator.clipboard.writeText(shareUrl);
+                showToast('KixoGames URL copied! Share it with your friends. 🎮', 'success');
+            }
+        }
+
+        window.addEventListener('scroll', () => {
+            let query = document.getElementById('search-box-desktop').value || document.getElementById('search-box-mobile').value || '';
+
+            if (((originalCategory !== 'all' && originalCategory !== '') || currentTag !== '') && query.trim() === '') return;
+
+            if (isFetching || !hasMoreGames) return;
+
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+                loadMoreGames();
+            }
+        });
+
+        function loadMoreGames() {
+            isFetching = true;
+            document.getElementById('skeleton-loader').classList.remove('hidden');
+            currentPage++;
+
+            let query = document.getElementById('search-box-desktop').value || '';
+            let category = query ? 'all' : originalCategory;
+
+            fetch(`/api/games?page=${currentPage}&q=${encodeURIComponent(query)}&category=${category}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('skeleton-loader').classList.add('hidden');
+                    if (data.games.length > 0) {
+                        appendGamesToContainer(data.games);
+                    }
+                    hasMoreGames = data.has_next;
+
+                    let pagBar = document.getElementById('pagination-bar');
+                    if (pagBar) {
+                        if (hasMoreGames) pagBar.classList.remove('hidden');
+                        else pagBar.classList.add('hidden');
+                    }
+
+                    isFetching = false;
+                })
+                .catch(err => {
+                    console.error("Load More Fetch Error:", err);
+                    isFetching = false;
+                    document.getElementById('skeleton-loader').classList.add('hidden');
+                });
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            checkAndShowPWAPrompt();
+        });
+
+        function checkAndShowPWAPrompt() {
+            const dismissedAt = localStorage.getItem('pwa_dismissed_at');
+            const now = Date.now();
+
+            if (dismissedAt && (now - parseInt(dismissedAt)) < 86400000) {
+                return;
+            }
+
+            let playedGames = false;
+            for (let i = 0; i < localStorage.length; i++) {
+                if (localStorage.key(i).startsWith('played_')) {
+                    playedGames = true;
+                    break;
+                }
+            }
+
+            if (playedGames) {
+                setTimeout(() => { showPWAPrompt(); }, 2000);
+            } else {
+                setTimeout(() => { showPWAPrompt(); }, 3 * 60 * 1000);
+            }
+        }
+
+        function showPWAPrompt() {
+            if (!deferredPrompt) return;
+            const popup = document.getElementById('smart-pwa-popup');
+            if (popup) {
+                popup.classList.remove('translate-y-[150%]');
+                popup.classList.add('translate-y-0');
+            }
+        }
+
+        function dismissPWA() {
+            const popup = document.getElementById('smart-pwa-popup');
+            if (popup) {
+                popup.classList.remove('translate-y-0');
+                popup.classList.add('translate-y-[150%]');
+                localStorage.setItem('pwa_dismissed_at', Date.now().toString());
+            }
+        }
+
+        document.getElementById('pwa-install-btn')?.addEventListener('click', async () => {
+            dismissPWA();
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+            }
+        });
+    </script>
+</body>
+
+</html>

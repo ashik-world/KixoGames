@@ -1,0 +1,104 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-09-14 14:58+0600\n"
+"PO-Revision-Date: 2026-09-14 15:00+0600\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: bn\n"
+"Language-Team: bn <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "Search games"
+msgstr "গেম খুঁজুন"
+
+msgid "Search games..."
+msgstr "গেম খুঁজুন..."
+
+msgid "All Games"
+msgstr "সব গেমস"
+
+msgid "Trending Now"
+msgstr "ট্রেন্ডিং গেমস"
+
+msgid "Share"
+msgstr "শেয়ার করুন"
+
+msgid "Games"
+msgstr "গেমস"
+
+msgid "Important Pages"
+msgstr "গুরুত্বপূর্ণ পেজ"
+
+msgid "Play Now"
+msgstr "এখন খেলুন"
+
+msgid "Select your language"
+msgstr "আপনার ভাষা নির্বাচন করুন"
+
+msgid "My Profile"
+msgstr "আমার প্রোফাইল"
+
+msgid "Dark Mode"
+msgstr "ডার্ক মোড"
+
+msgid "Play Games"
+msgstr "গেমস খেলুন"
+
+msgid "Logout"
+msgstr "লগআউট"
+
+msgid "Home"
+msgstr "হোম"
+
+msgid "Login / Sign Up"
+msgstr "লগইন / সাইন আপ"
+
+msgid "XP PROGRESS"
+msgstr "এক্সপি প্রগ্রেস"
+
+msgid "CHANGE USERNAME"
+msgstr "ইউজারনেম পরিবর্তন করুন"
+
+msgid "Save"
+msgstr "সংরক্ষণ করুন"
+
+msgid "Recently Played"
+msgstr "সম্প্রতি খেলা গেমস"
+
+msgid "PLAY AGAIN"
+msgstr "আবার খেলুন"
+
+msgid "You haven't played any games recently. 🎮"
+msgstr "আপনি সম্প্রতি কোনো গেম খেলেননি। 🎮"
+
+msgid "My Favorite Games"
+msgstr "আমার প্রিয় গেমস"
+
+msgid "PLAY NOW"
+msgstr "এখন খেলুন"
+
+msgid "No favorite games yet! Go to Trending Games and click the heart icon. 🎮"
+msgstr "এখনো কোনো প্রিয় গেম নেই! ট্রেন্ডিং গেমসে গিয়ে হার্ট আইকনে ক্লিক করুন। 🎮"
+
+msgid "Prev"
+msgstr "পূর্ববর্তী"
+
+msgid "Page"
+msgstr "পেজ"
+
+msgid "of"
+msgstr "এর"
+
+msgid "Next"
+msgstr "পরবর্তী"
+
+msgid "My Favorite Games"
+msgstr "আমার প্রিয় গেমস"
+
+msgid "Play thousands of free online games directly in your browser. All your favorite categories like action, puzzle, racing, and arcade are here."
+msgstr "আপনার ব্রাউজারে সরাসরি হাজার হাজার ফ্রি অনলাইন গেম খেলুন। অ্যাকশন, পাজল, রেসিং এবং আর্কেডের মতো আপনার সব প্রিয় ক্যাটাগরি এখানে রয়েছে।"

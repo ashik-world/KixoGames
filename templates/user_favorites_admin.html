@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Favorites - KixoGames Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</head>
+
+<body
+    class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8 font-sans transition-colors duration-300">
+
+    <div
+        class="max-w-7xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
+        <div class="bg-gray-900 text-white p-6 flex justify-between items-center">
+            <div>
+                <h1
+                    class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                    📂 USER FAVORITES</h1>
+                <p class="text-sm text-gray-400 mt-1">Viewing favorites for: <span class="font-bold text-white">{{
+                        user.email }}</span></p>
+            </div>
+            <div class="flex gap-3 items-center">
+                <a href="/gamesecurityadmin"
+                    class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold text-sm transition-colors">←
+                    Back to Dashboard</a>
+            </div>
+        </div>
+
+        <div class="p-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white border-l-4 border-blue-500 pl-3">
+                Saved Games ({{ games|length }})
+            </h2>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+                {% if games %}
+                {% for game in games %}
+                <div
+                    class="relative overflow-hidden rounded-2xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm group">
+                    <img src="{{ game.image_url }}" alt="{{ game.name }}"
+                        onerror="this.onerror=null; this.src='https://via.placeholder.com/400x400?text=Game+Image';"
+                        class="w-full aspect-square object-cover">
+                    <div class="p-3">
+                        <h3 class="font-bold text-gray-800 dark:text-white truncate mb-2">{{ game.name }}</h3>
+                        <a href="/admin/remove_favorite/{{ game.id }}/{{ user.id }}"
+                            class="block text-center w-full bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white font-bold py-2 rounded-lg transition-colors text-sm"
+                            onclick="return confirm('Remove this game from the user\'s favorites?')">
+                            ❌ Remove
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div
+                    class="col-span-full py-16 text-center bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div class="text-5xl mb-4">📭</div>
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-2">No Favorites Yet!</h2>
+                    <p class="text-gray-500 dark:text-gray-400">This user hasn't saved any games to their favorites
+                        list.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

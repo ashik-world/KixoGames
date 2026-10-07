@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ data.title }} - KixoGames</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</head>
+
+<body
+    class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-300">
+
+    <div id="page-loader"
+        class="fixed inset-0 z-[9999] bg-white dark:bg-gray-900 flex items-center justify-center transition-opacity duration-500">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+    </div>
+
+    <!-- 🚀 Optimized Navbar for Legal Pages -->
+    <nav
+        class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm transition-colors duration-300 relative">
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <a href="/"
+                class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500 tracking-wider">
+                ← KixoGames
+            </a>
+
+            <!-- 🖥️ DESKTOP: Action Icons -->
+            <div class="hidden md:flex items-center space-x-3 sm:space-x-4">
+                <button id="theme-toggle-desktop"
+                    class="p-2.5 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none transition-colors"
+                    title="Dark Mode">
+                    <svg class="w-5 h-5 hidden dark:block text-yellow-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    <svg class="w-5 h-5 block dark:hidden text-gray-600" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                        </path>
+                    </svg>
+                </button>
+
+                {% if session.get('user_logged_in') %}
+                <a href="/profile" title="Profile"
+                    class="p-2.5 rounded-full bg-blue-100 dark:bg-gray-700 hover:bg-blue-200 dark:hover:bg-gray-600 focus:outline-none transition-colors">
+                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </a>
+                <a href="/user_logout" title="Logout"
+                    class="p-2.5 rounded-full bg-red-100 dark:bg-gray-700 hover:bg-red-200 dark:hover:bg-gray-600 focus:outline-none transition-colors">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                        </path>
+                    </svg>
+                </a>
+                {% else %}
+                <a href="/signup" title="Login / Sign Up"
+                    class="p-2.5 rounded-full bg-blue-100 dark:bg-gray-700 hover:bg-blue-200 dark:hover:bg-gray-600 focus:outline-none transition-colors">
+                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
+                        </path>
+                    </svg>
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- 📱 MOBILE: Menu Toggle Icon Only -->
+            <div class="flex md:hidden items-center">
+                <button onclick="toggleMobileMenu()"
+                    class="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-500 focus:outline-none transition-colors">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 📱 MOBILE: Hamburger Menu Dropdown -->
+        <div id="mobile-menu-dropdown"
+            class="hidden absolute top-16 right-4 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl z-50 flex-col overflow-hidden transition-all origin-top-right">
+            <button id="theme-toggle-mobile"
+                class="flex items-center w-full px-5 py-3.5 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold transition-colors">
+                <svg class="w-5 h-5 mr-3 hidden dark:block text-yellow-400" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
+                </svg>
+                <svg class="w-5 h-5 mr-3 block dark:hidden text-gray-600" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                    </path>
+                </svg>
+                <span id="theme-text-mobile">Dark Mode</span>
+            </button>
+            {% if session.get('user_logged_in') %}
+            <a href="/profile"
+                class="flex items-center w-full px-5 py-3.5 text-left text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700 font-bold transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg> Profile
+            </a>
+            <a href="/user_logout"
+                class="flex items-center w-full px-5 py-3.5 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border-t border-gray-100 dark:border-gray-700 font-bold transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                    </path>
+                </svg> Logout
+            </a>
+            {% else %}
+            <a href="/signup"
+                class="flex items-center w-full px-5 py-3.5 text-left text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700 font-bold transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
+                    </path>
+                </svg> Login / Sign Up
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full flex flex-col items-center"
+        onclick="closeMobileMenus()">
+        <div
+            class="bg-white dark:bg-gray-800 p-8 md:p-12 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 w-full max-w-4xl transition-colors duration-300">
+            <h1
+                class="text-3xl md:text-4xl font-black mb-8 text-gray-800 dark:text-white border-l-4 border-blue-500 pl-4">
+                {{ data.title }}</h1>
+
+            <div class="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-300">
+                {{ data.content | safe }}
+            </div>
+        </div>
+    </main>
+
+    <footer
+        class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-12 mt-12 transition-colors duration-300">
+        <div
+            class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center md:items-start gap-8 text-center md:text-left">
+            <div class="flex-1 max-w-sm">
+                <a href="/"
+                    class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-400 dark:to-purple-500 tracking-wider">KixoGames</a>
+                <p class="mt-4 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Play thousands of free online
+                    games directly in your browser. All your favorite categories like action, puzzle, racing, and arcade
+                    are here.</p>
+            </div>
+
+            <div class="flex-1 flex flex-col items-center justify-center md:pt-6">
+                <p class="text-sm font-medium text-gray-400 dark:text-gray-500 leading-relaxed text-center">
+                    &copy; 2026 KixoGames. Your number one place for free games.<br>All rights reserved.
+                </p>
+            </div>
+
+            <div class="flex-1 flex justify-center md:justify-end">
+                <div class="text-center md:text-right">
+                    <h4 class="font-bold text-gray-800 dark:text-white uppercase tracking-wider mb-4 text-sm">Important
+                        Pages</h4>
+                    <ul class="flex flex-col space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                        {% for page in footer_pages %}
+                        <li><a href="{{ url_for('legal_page', title_slug=page.title|replace(' ', '-')) }}"
+                                class="hover:text-blue-500 transition-colors">{{ page.title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('page-loader');
+            loader.classList.add('opacity-0');
+            setTimeout(() => loader.style.display = 'none', 500);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateThemeText();
+        });
+
+        // 🚀 Handle Theme Toggle for both Desktop and Mobile Menus
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            updateThemeText();
+        }
+        document.getElementById('theme-toggle-desktop').addEventListener('click', toggleTheme);
+        document.getElementById('theme-toggle-mobile').addEventListener('click', toggleTheme);
+
+        function updateThemeText() {
+            let isDark = document.documentElement.classList.contains('dark');
+            let themeText = isDark ? 'Light Mode' : 'Dark Mode';
+
+            let themeTextMobile = document.getElementById('theme-text-mobile');
+            if (themeTextMobile) themeTextMobile.innerText = themeText;
+
+            let themeToggleDesktop = document.getElementById('theme-toggle-desktop');
+            if (themeToggleDesktop) themeToggleDesktop.title = themeText;
+        }
+
+        // 📱 Mobile Nav Logic
+        function toggleMobileMenu() {
+            let profileMenu = document.getElementById('mobile-menu-dropdown');
+            profileMenu.classList.toggle('hidden');
+        }
+
+        function closeMobileMenus() {
+            let profileMenu = document.getElementById('mobile-menu-dropdown');
+            if (profileMenu && !profileMenu.classList.contains('hidden')) profileMenu.classList.add('hidden');
+        }
+    </script>
+</body>
+
+</html>
