@@ -142,7 +142,7 @@ R2_ACCESS_KEY_ID = os.getenv('R2_ACCESS_KEY_ID')
 R2_SECRET_ACCESS_KEY = os.getenv('R2_SECRET_ACCESS_KEY')
 R2_ENDPOINT_URL = os.getenv('R2_ENDPOINT_URL')
 R2_PUBLIC_URL = os.getenv('R2_PUBLIC_URL')
-BUCKET_NAME = 'KixoGames-assets'
+BUCKET_NAME = 'kixogames-assets'
 
 s3_client = boto3.client(
     's3',
@@ -1223,7 +1223,7 @@ def track_playtime():
         uid = str(session.get('user_id')) if session.get('user_logged_in') else request.remote_addr
         
         # Get the most recent interaction for this user and game
-        log = InteractionLog.query.filter_by(user_id=uid, game_id=game_id).order_by(InteractionLog.timestamp.desc()).first()
+        log = InteractionLog.query.filter_by(user_id=uid, game_id=int(game_id)).order_by(InteractionLog.timestamp.desc()).first()
         if log:
             log.playtime_seconds = (log.playtime_seconds or 0) + playtime
             db.session.commit()
