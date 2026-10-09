@@ -19,4 +19,5 @@ redis
 pywebpush
 Flask-Babel
 deep-translator
-psycopg2-binary
+psycopg
+psycopg-binary
